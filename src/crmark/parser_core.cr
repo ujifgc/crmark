@@ -12,12 +12,12 @@ module MarkdownIt
     property :ruler
     
     RULES = [
-      { "normalize",      -> (state : RuleState, startLine : Int32, endLine : Int32, silent : Bool) { RulesCore::Normalize.inline(state) }         },
-      { "block",          -> (state : RuleState, startLine : Int32, endLine : Int32, silent : Bool) { RulesCore::Block.block(state) }              },
-      { "inline",         -> (state : RuleState, startLine : Int32, endLine : Int32, silent : Bool) { RulesCore::Inline.inline(state) }            },
-#     { "linkify",        -> (state : RuleState, startLine : Int32, endLine : Int32, silent : Bool) { RulesCore::Linkify.linkify(state) }          },
-      { "replacements",   -> (state : RuleState, startLine : Int32, endLine : Int32, silent : Bool) { RulesCore::Replacements.replace(state) }     },
-#     { "smartquotes",    -> (state : RuleState, startLine : Int32, endLine : Int32, silent : Bool) { RulesCore::Smartquotes.smartquotes(state) }  },
+      { "normalize",      -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesCore::Normalize.inline(state) }         },
+      { "block",          -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesCore::Block.block(state) }              },
+      { "inline",         -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesCore::Inline.inline(state) }            },
+#     { "linkify",        -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesCore::Linkify.linkify(state) }          },
+      { "replacements",   -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesCore::Replacements.replace(state) }     },
+#     { "smartquotes",    -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesCore::Smartquotes.smartquotes(state) }  },
     ]
 
 
@@ -40,9 +40,7 @@ module MarkdownIt
     #------------------------------------------------------------------------------
     def process(state)
       rules = @ruler.getRules("")
-      puts __FILE__+__LINE__.to_s
       rules.each do |rule|
-        puts __FILE__+__LINE__.to_s
         rule.call(state, 0, 0, true)
       end
     end

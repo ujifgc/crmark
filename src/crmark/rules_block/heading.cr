@@ -22,15 +22,16 @@ module MarkdownIt
           ch = state.src.charCodeAt(pos)
         end
 
-        return false if (level > 6 || (pos < max && ch != 0x20))  # space
+        return false if (level > 6 || (pos < max && ch != 0x20 && ch != 0x09))  # space/tab
 
         return true if (silent)
 
         # Let's cut tails like '    ###  ' from the end of string
 
-        max = state.skipCharsBack(max, 0x20, pos) # space
+        max = state.skipSpacesBack(max, pos) # space
         tmp = state.skipCharsBack(max, 0x23, pos) # '#'
-        if (tmp > pos && state.src.charCodeAt(tmp - 1) == 0x20)   # space
+        ch  = state.src.charCodeAt(tmp - 1)
+        if (tmp > pos && (ch == 0x20 || ch == 0x09))   # space/tab
           max = tmp
         end
 

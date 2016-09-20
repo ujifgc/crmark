@@ -24,7 +24,7 @@ module MarkdownIt
 
     @name : String
     @enabled : Bool
-    @fn : Proc(RuleState, Int32, Int32, Bool, Bool)
+    @fn : Proc(ParserState, Int32, Int32, Bool, Bool)
     @alt : Array(String)
 
     def initialize(@name, @enabled, @fn, @alt)
@@ -47,7 +47,7 @@ module MarkdownIt
       # //
       # // First level - chain name, "" for default.
       # // Second level - diginal anchor for fast filtering by charcodes.
-      @__cache__ = Hash(String, Array(Proc(RuleState, Int32, Int32, Bool, Bool))).new
+      @__cache__ = Hash(String, Array(Proc(ParserState, Int32, Int32, Bool, Bool))).new
     end
 
     #------------------------------------------------------------------------------
@@ -83,7 +83,7 @@ module MarkdownIt
       @__cache__.clear
 
       chains.each do |chain|
-        @__cache__[chain] = Array(Proc(RuleState, Int32, Int32, Bool, Bool)).new
+        @__cache__[chain] = Array(Proc(ParserState, Int32, Int32, Bool, Bool)).new
         @__rules__.each do |rule|
           next if !rule.enabled
           next if (chain && !rule.alt.includes?(chain))
@@ -232,6 +232,7 @@ module MarkdownIt
       unless alt.includes?("")
         alt = [""] + alt
       end
+
       @__rules__.push(Rule.new name: ruleName, enabled: true, fn: fn, alt: alt)
       @__cache__.clear
     end

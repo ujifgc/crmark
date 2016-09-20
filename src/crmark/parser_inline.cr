@@ -14,17 +14,17 @@ module MarkdownIt
     # Parser rules
 
     RULES = [
-      { "text",            -> (state : RuleState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Text.text(state, silent) } },
-      { "newline",         -> (state : RuleState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Newline.newline(state, silent) } },
-      { "escape",          -> (state : RuleState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Escape.escape(state, silent) } },
-      { "backticks",       -> (state : RuleState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Backticks.backtick(state, silent) } },
-      { "strikethrough",   -> (state : RuleState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Strikethrough.strikethrough(state, silent) } },
-      { "emphasis",        -> (state : RuleState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Emphasis.emphasis(state, silent) } },
-      { "link",            -> (state : RuleState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Link.link(state, silent) } },
-      { "image",           -> (state : RuleState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Image.image(state, silent) } },
-      { "autolink",        -> (state : RuleState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Autolink.autolink(state, silent) } },
-      { "html_inline",     -> (state : RuleState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::HtmlInline.html_inline(state, silent) } },
-      { "entity",          -> (state : RuleState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Entity.entity(state, silent) } },
+      { "text",            -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Text.text(state, silent) } },
+      { "newline",         -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Newline.newline(state, silent) } },
+      { "escape",          -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Escape.escape(state, silent) } },
+      { "backticks",       -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Backticks.backtick(state, silent) } },
+      { "strikethrough",   -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Strikethrough.strikethrough(state, silent) } },
+      { "emphasis",        -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Emphasis.emphasis(state, silent) } },
+      { "link",            -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Link.link(state, silent) } },
+      { "image",           -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Image.image(state, silent) } },
+      { "autolink",        -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Autolink.autolink(state, silent) } },
+      { "html_inline",     -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::HtmlInline.html_inline(state, silent) } },
+      { "entity",          -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Entity.entity(state, silent) } },
     ]
 
     #------------------------------------------------------------------------------
@@ -49,14 +49,10 @@ module MarkdownIt
       maxNesting = state.md.options[:maxNesting]
       cache      = state.cache
 
-puts __FILE__+__LINE__.to_s
-
       if cache[pos]?
         state.pos = cache[pos]
         return
       end
-
-puts __FILE__+__LINE__.to_s
 
       # istanbul ignore else
       if state.level < maxNesting
@@ -67,8 +63,6 @@ puts __FILE__+__LINE__.to_s
           end
         end
       end
-
-puts __FILE__+__LINE__.to_s
 
       state.pos += 1
       cache[pos] = state.pos
@@ -83,8 +77,6 @@ puts __FILE__+__LINE__.to_s
       end_pos    = state.posMax
       maxNesting = state.md.options[:maxNesting]
 
-puts state.src
-puts __FILE__+__LINE__.to_s
       while state.pos < end_pos
         # Try all possible rules.
         # On success, rule should:
@@ -93,19 +85,13 @@ puts __FILE__+__LINE__.to_s
         # - update `state.tokens`
         # - return true
 
-puts __FILE__+__LINE__.to_s
         ok = false
         if state.level < maxNesting
-puts len
           0.upto(len - 1) do |i|
-puts __FILE__+__LINE__.to_s
-puts i
             ok = rules[i].call(state, 0, 0, false)
-puts __FILE__+__LINE__.to_s
             break if ok
           end
         end
-puts __FILE__+__LINE__.to_s
 
         if ok
           break if state.pos >= end_pos
@@ -115,7 +101,6 @@ puts __FILE__+__LINE__.to_s
         state.pending += state.src[state.pos]
         state.pos     += 1
       end
-puts __FILE__+__LINE__.to_s
 
       unless state.pending.empty?
         state.pushPending
@@ -127,9 +112,7 @@ puts __FILE__+__LINE__.to_s
     # Process input string and push inline tokens into `outTokens`
     #------------------------------------------------------------------------------
     def parse(str, md, env, outTokens)
-puts __FILE__+__LINE__.to_s
       state = RulesInline::StateInline.new(str, md, env, outTokens)
-puts __FILE__+__LINE__.to_s
 
       tokenize(state)
     end

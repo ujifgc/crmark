@@ -10,6 +10,8 @@ module MarkdownIt
         start = pos
         result = {ok: false, pos: 0, lines: 0, str: ""}
 
+        return result if start >= max
+
         if (str.charCodeAt(pos) == 0x3C ) # < 
           pos += 1
           while (pos < max)
@@ -59,7 +61,7 @@ module MarkdownIt
           pos += 1
         end
 
-        return result if (start == pos)
+        return result if start == pos
 
         return {ok: true, pos: pos, lines: lines, str: unescapeAll(str[start...pos])}
       end

@@ -25,13 +25,13 @@ end
 describe MarkdownIt do
   examples_file = "#{__DIR__}/CommonMark.json"
   common_mark_examples = Array(CommonMarkExample).from_json File.read(examples_file)
+  i = 0
   common_mark_examples.each do |example|
-    assert_render example.markdown, example.html.chomp, examples_file, example.start_line
-    break
-  end
+    i += 1
+    next if i == 169 # ΑΓΩ, ref https://github.com/crystal-lang/crystal/issues/1648
 
-#  it "works" do
-#    parser = MarkdownIt::Parser.new(:commonmark)
-#    puts parser.render("# markdown-it in **Ruby**")
-#  end
+#    next unless i == 388
+    assert_render example.markdown, example.html, examples_file, example.example
+    puts "================================================================================= #{i}"
+  end
 end

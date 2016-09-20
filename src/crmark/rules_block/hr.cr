@@ -18,13 +18,13 @@ module MarkdownIt
           return false
         end
 
-        # markers can be mixed with spaces, but there should be at least 3 one
+        # markers can be mixed with spaces, but there should be at least 3 of them
 
         cnt = 1
         while (pos < max)
           ch   = state.src.charCodeAt(pos)
           pos += 1
-          return false if (ch != marker && ch != 0x20) # space
+          return false if (ch != marker && ch != 0x20 && ch != 0x09) # space
           cnt += 1 if (ch == marker)
         end
 
@@ -35,7 +35,7 @@ module MarkdownIt
 
         token        = state.push("hr", "hr", 0)
         token.map    = [ startLine, state.line ]
-        token.markup = marker.chr.to_s * (cnt + 1)
+        token.markup = marker.chr.to_s * cnt
 
         return true
       end

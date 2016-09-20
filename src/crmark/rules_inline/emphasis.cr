@@ -63,7 +63,6 @@ module MarkdownIt
 
       #------------------------------------------------------------------------------
       def self.emphasis(state, silent)
-puts __FILE__+__LINE__.to_s
         max    = state.posMax
         start  = state.pos
         marker = state.src.charCodeAt(start)
@@ -83,15 +82,8 @@ puts __FILE__+__LINE__.to_s
         state.pos = start + startCount
         stack = [ startCount ]
 
-puts __FILE__+__LINE__.to_s
         while (state.pos < max)
-puts __FILE__+__LINE__.to_s
-puts state.pos
-puts "MRKR: " + marker.inspect
-puts "CHCD: " + state.src.charCodeAt(state.pos).inspect
-puts __FILE__+__LINE__.to_s
           if state.src.charCodeAt(state.pos) == marker
-puts __FILE__+__LINE__.to_s
             res = scanDelims(state, state.pos)
             count = res[:delims]
             if (res[:can_close])
@@ -126,11 +118,9 @@ puts __FILE__+__LINE__.to_s
             next
           end
 
-puts __FILE__+__LINE__.to_s
           state.md.inline.skipToken(state)
         end
 
-puts __FILE__+__LINE__.to_s
         if (!found)
           # parser failed to find ending tag, so it's not valid emphasis
           state.pos = start

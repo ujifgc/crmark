@@ -81,10 +81,10 @@ module MarkdownIt
       HTML_ESCAPE_TEST_RE     = /[&<>"]/
       HTML_ESCAPE_REPLACE_RE  = /[&<>"]/
       HTML_REPLACEMENTS       = {
-        '&' => "&amp;",
-        '<' => "&lt;",
-        '>' => "&gt;",
-        '"' => "&quot;"
+        "&" => "&amp;",
+        "<" => "&lt;",
+        ">" => "&gt;",
+        "\"" => "&quot;"
       }
 
       #------------------------------------------------------------------------------
@@ -186,7 +186,12 @@ module MarkdownIt
         # use .toUpperCase() instead of .toLowerCase()
         # here to avoid a conflict with Object.prototype
         # members (most notably, `__proto__`)
+        # !!! make upcase unicode
         return str.strip.gsub(/\s+/, " ").upcase
+      end
+
+      def clean_env
+        StateEnv.new references: {} of String => LinkReference
       end
     end
   end

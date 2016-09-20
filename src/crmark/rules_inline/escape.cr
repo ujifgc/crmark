@@ -36,7 +36,9 @@ module MarkdownIt
 
             pos += 1
             # skip leading whitespaces from next line
-            while (pos < max && state.src.charCodeAt(pos) == 0x20)
+            while pos < max
+              ch = state.src.charCodeAt(pos)
+              break if ch != 0x20 && ch != 0x09
               pos += 1
             end
 

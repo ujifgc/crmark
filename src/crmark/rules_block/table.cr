@@ -60,7 +60,7 @@ module MarkdownIt
 
         nextLine = startLine + 1
 
-        return false if (state.tShift[nextLine] < state.blkIndent)
+        return false if (state.sCount[nextLine] < state.blkIndent)
 
         # first character of the second line should be '|' or '-'
         pos = state.bMarks[nextLine] + state.tShift[nextLine]
@@ -135,7 +135,7 @@ module MarkdownIt
 
         nextLine = startLine + 2
         while nextLine < endLine
-          break if (state.tShift[nextLine] < state.blkIndent)
+          break if (state.sCount[nextLine] < state.blkIndent)
 
           lineText = getLine(state, nextLine).strip
           break if !lineText.includes?("|")

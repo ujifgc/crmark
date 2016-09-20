@@ -1,9 +1,12 @@
 module MarkdownIt
-  class RuleState
+  alias LinkReference = NamedTuple(title: String, href: String)
+  alias StateEnv = NamedTuple(references: Hash(String, LinkReference))
+
+  class ParserState
     property :src, :md, :env, :tokens
 
     #block
-    property :bMarks, :eMarks, :tShift
+    property :bMarks, :eMarks, :tShift, :sCount, :bsCount
     property :blkIndent, :line, :lineMax, :tight, :parentType, :ddIndent
     property :level, :result
       
@@ -16,7 +19,7 @@ module MarkdownIt
 
     @posMax : Int32
 
-    def initialize(@src : String, @md : Parser, @env : String, @tokens = [] of Token)
+    def initialize(@src : String, @md : Parser, @env : StateEnv, @tokens = [] of Token)
       @pos          = 0
       @posMax       = @src.size
       @level        = 0
@@ -26,7 +29,9 @@ module MarkdownIt
                                                # optimization of pairs parse (emphasis, strikes).
       @bMarks = [] of Int32 # line begin offsets for fast jumps
       @eMarks = [] of Int32 # line end offsets for fast jumps
-      @tShift = [] of Int32 # indent for each line
+      @tShift = [] of Int32 # 
+      @sCount = [] of Int32 # 
+      @bsCount = [] of Int32 # 
 
       # block parser variables
       @blkIndent  = 0       # required block content indent (for example, if we are in list)
@@ -52,6 +57,10 @@ module MarkdownIt
     end
 
     def skipSpaces(pos)
+      raise "not implemented"
+    end
+
+    def skipSpacesBack(pos, min)
       raise "not implemented"
     end
 

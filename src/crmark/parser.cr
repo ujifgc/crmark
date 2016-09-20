@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 require "uri"
 require "./presets/*"
-require "./rule_state"
+require "./parser_state"
 
 CONFIG = {
   :default    => MarkdownIt::Presets::Default.options,
@@ -30,17 +30,12 @@ end
 
 RECODE_HOSTNAME_FOR = [ "http:", "https:", "mailto:" ]
 
-# mdurl comes from https://github.com/markdown-it/mdurl
 NORMALIZE_LINK = ->(url : String) do
-  parsed = URI.parse(url)
-  return parsed.to_s
-  #!!!MDUrl::Encode.encode(MDUrl::Format.format(parsed))
+  MarkdownIt::MDUrl.encode(url)
 end
 
 NORMALIZE_LINK_TEXT = ->(url : String) do
-  parsed = URI.parse(url)
-  #!!!
-  return parsed.to_s
+  url
 end
 
 
@@ -447,7 +442,6 @@ module MarkdownIt
     def parse(src, env)
       state = RulesCore::StateCore.new(src, self, env)
       @core.process(state)
-      puts __FILE__+__LINE__.to_s
       state.tokens
     end
 
@@ -461,15 +455,12 @@ module MarkdownIt
     # But you will not need it with high probability. See also comment
     # in [[MarkdownIt.parse]].
     #------------------------------------------------------------------------------
-    def render(src, env = "")
-      # self.parse(src, { references: {} }).each {|token| pp token.to_json}
-
-      puts __FILE__+__LINE__.to_s
+    def render(src, env = clean_env)
       return @renderer.render(parse(src, env), @options, env)
     end
 
     #------------------------------------------------------------------------------
-    def to_html(src, env = "")
+    def to_html(src, env = clean_env)
       render(src, env)
     end
 
@@ -497,7 +488,7 @@ module MarkdownIt
     # Similar to [[MarkdownIt.render]] but for single paragraph content. Result
     # will NOT be wrapped into `<p>` tags.
     #------------------------------------------------------------------------------
-    def renderInline(src, env = "")
+    def renderInline(src, env = clean_env)
       return @renderer.render(parseInline(src, env), @options, env)
     end
 

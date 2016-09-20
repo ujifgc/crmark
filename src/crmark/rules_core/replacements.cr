@@ -67,7 +67,6 @@ module MarkdownIt
 
       #------------------------------------------------------------------------------
       def self.replace(state)
-puts __FILE__+__LINE__.to_s
         return false if (!state.md.options[:typographer])
 
         (state.tokens.size - 1).downto(0) do |blkIdx|

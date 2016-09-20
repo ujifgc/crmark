@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 module MarkdownIt
   module RulesInline
-    class StateInline < RuleState
+    class StateInline < ParserState
       # Flush pending text
       #------------------------------------------------------------------------------
       def pushPending

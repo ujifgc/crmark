@@ -21,8 +21,8 @@ module MarkdownIt
       DECLARATION   = "<![A-Z]+\\s+[^>]*>"
       CDATA         = "<!\\[CDATA\\[[\\s\\S]*?\\]\\]>"
 
-      HTML_TAG_RE     = Regex.new("^(?:" + OPEN_TAG + "|" + CLOSE_TAG + "|" + COMMENT +
-                            "|" + PROCESSING + "|" + DECLARATION + "|" + CDATA + ")")
+      HTML_TAG_RE = Regex.new("^(?:" + OPEN_TAG + "|" + CLOSE_TAG + "|" + COMMENT + "|" + PROCESSING + "|" + DECLARATION + "|" + CDATA + ")")
+      HTML_OPEN_CLOSE_TAG_RE = Regex.new("^(?:" + OPEN_TAG + "|" + CLOSE_TAG + ")")
     end
   end
 end

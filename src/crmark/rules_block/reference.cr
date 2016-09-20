@@ -12,7 +12,7 @@ module MarkdownIt
         max      = state.eMarks[startLine]
         nextLine = startLine + 1
 
-        return false if (state.src.charCodeAt(pos) != 0x5B) # [
+        return false if state.src.charCodeAt(pos) != 0x5B # [
 
         # Simple check to quickly interrupt scan on [link](url) at the start of line.
         # Can be useful on practice: https://github.com/markdown-it/markdown-it/issues/54
@@ -20,7 +20,7 @@ module MarkdownIt
         while (pos < max)
           if (state.src.charCodeAt(pos) == 0x5D &&    # ]
               state.src.charCodeAt(pos - 1) != 0x5C)  # \
-            return false if (pos + 1 === max)
+            return false if (pos + 1 == max)
             return false if (state.src.charCodeAt(pos + 1) != 0x3A)  # :
             break
           end
@@ -32,13 +32,16 @@ module MarkdownIt
         # jump line-by-line until empty one or EOF
         terminatorRules = state.md.block.ruler.getRules("reference")
 
+        oldParentType = state.parentType
+        state.parentType = "reference"
+
         while nextLine < endLine && !state.isEmpty(nextLine)
           # this would be a code block normally, but after paragraph
           # it's considered a lazy continuation regardless of what's there
-          (nextLine += 1) && next if (state.tShift[nextLine] - state.blkIndent > 3)
+          (nextLine += 1) && next if (state.sCount[nextLine] - state.blkIndent > 3)
 
           # quirk for blockquotes, this line should already be checked by that rule
-          (nextLine += 1) && next if state.tShift[nextLine] < 0
+          (nextLine += 1) && next if state.sCount[nextLine] < 0
 
           # Some tags can terminate paragraph without empty line.
           terminate = false
@@ -84,7 +87,8 @@ module MarkdownIt
           ch = str.charCodeAt(pos)
           if (ch == 0x0A)
             lines += 1
-          elsif (ch == 0x20)
+          elsif (ch == 0x20 || ch == 0x09)
+            # skip
           else
             break
           end
@@ -113,7 +117,8 @@ module MarkdownIt
           ch = str.charCodeAt(pos)
           if (ch == 0x0A)
             lines += 1
-          elsif (ch == 0x20)
+          elsif (ch == 0x20 || ch == 0x09)
+            # skip
           else
             break
           end
@@ -134,11 +139,28 @@ module MarkdownIt
         end
 
         # skip trailing spaces until the rest of the line
-        while (pos < max && str.charCodeAt(pos) == 0x20)  # space
+        while pos < max
+          ch = str.charCodeAt(pos)
+          break if ch != 0x20 && ch != 0x09
           pos += 1
         end
 
-        if (pos < max && str.charCodeAt(pos) != 0x0A)
+        if pos < max && str.charCodeAt(pos) != 0x0A
+          unless title.empty?
+            # garbage at the end of the line after title,
+            # but it could still be a valid reference if we roll back
+            title = ""
+            pos = destEndPos
+            lines = destEndLineNo
+            while pos < max
+              ch = str.charCodeAt(pos)
+              break if ch != 0x20 && ch != 0x09
+              pos += 1
+            end
+          end
+        end
+
+        if pos < max && str.charCodeAt(pos) != 0x0A
           # garbage at the end of the line
           return false
         end
@@ -153,12 +175,11 @@ module MarkdownIt
         # istanbul ignore if
         return true if (silent)
 
-#!!!        if (state.env[:references].nil?)
-#          state.env[:references] = {} of String => Hash(String, String)
-#        end
-#        if state.env[:references][label].nil?
-#          state.env[:references][label] = { title: title, href: href }
-#        end
+        unless state.env[:references][label]?
+          state.env[:references][label] = { title: title, href: href }
+        end
+
+        state.parentType = oldParentType
 
         state.line = startLine + lines + 1
         return true

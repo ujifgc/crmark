@@ -78,7 +78,7 @@ module MarkdownIt
 
     alias OptionType = NamedTuple(html: Bool, xhtmlOut: Bool, breaks: Bool, langPrefix: String, linkify: Bool, typographer: Bool, quotes: String, highlight: Nil, maxNesting: Int32)
 
-    @rules : Hash(String, Proc(Array(Token), Int32, OptionType, String, Renderer, String))
+    @rules : Hash(String, Proc(Array(Token), Int32, OptionType, StateEnv, Renderer, String))
 
     # new Renderer()
     #
@@ -86,15 +86,15 @@ module MarkdownIt
     #------------------------------------------------------------------------------
     def initialize
       @rules = {
-        "code_inline" => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : String, renderer : Renderer) { Renderer.code_inline(tokens, idx) },
-        "code_block"  => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : String, renderer : Renderer) { Renderer.code_block(tokens, idx)},
-        "fence"       => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : String, renderer : Renderer) { Renderer.fence(tokens, idx, options, env, renderer)},
-        "image"       => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : String, renderer : Renderer) { Renderer.image(tokens, idx, options, env, renderer)},
-        "hardbreak"   => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : String, renderer : Renderer) { Renderer.hardbreak(tokens, idx, options)},
-        "softbreak"   => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : String, renderer : Renderer) { Renderer.softbreak(tokens, idx, options)},
-        "text"        => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : String, renderer : Renderer) { Renderer.text(tokens, idx)},
-        "html_block"  => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : String, renderer : Renderer) { Renderer.html_block(tokens, idx)},
-        "html_inline" => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : String, renderer : Renderer) { Renderer.html_inline(tokens, idx)}
+        "code_inline" => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.code_inline(tokens, idx) },
+        "code_block"  => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.code_block(tokens, idx)},
+        "fence"       => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.fence(tokens, idx, options, env, renderer)},
+        "image"       => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.image(tokens, idx, options, env, renderer)},
+        "hardbreak"   => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.hardbreak(tokens, idx, options)},
+        "softbreak"   => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.softbreak(tokens, idx, options)},
+        "text"        => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.text(tokens, idx)},
+        "html_block"  => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.html_block(tokens, idx)},
+        "html_inline" => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.html_inline(tokens, idx)}
       }
       
       # Renderer#rules -> Object
@@ -193,7 +193,8 @@ module MarkdownIt
               # Block-level tag containing an inline tag.
               #
               needLf = false
-
+            elsif nextToken.tag == token.tag && nextToken.tag == "blockquote"
+              # blockquote wants \n inside
             elsif nextToken.nesting == -1 && nextToken.tag == token.tag
               # Opening tag + closing tag of the same type. E.g. `<li></li>`.
               #
@@ -219,7 +220,6 @@ module MarkdownIt
     def renderInline(tokens, options, env)
       result  = ""
       rules   = @rules
-
       0.upto(tokens.size - 1) do |i|
         type = tokens[i].type
         
@@ -272,30 +272,17 @@ module MarkdownIt
       result = ""
       rules  = @rules
 
-puts __FILE__+__LINE__.to_s
       0.upto(tokens.size - 1) do |i|
-puts __FILE__+__LINE__.to_s
         type = tokens[i].type
-puts __FILE__+__LINE__.to_s
 
         if type == "inline"
-puts __FILE__+__LINE__.to_s
-puts i
-puts type
           result += renderInline(tokens[i].children, options, env)
         elsif rules[type]?
-puts __FILE__+__LINE__.to_s
-puts i
-puts type
           result += rules[tokens[i].type].call(tokens, i, options, env, self)
         else
-puts __FILE__+__LINE__.to_s
-puts i
-puts type
           result += renderToken(tokens, i, options)
         end
       end
-puts __FILE__+__LINE__.to_s
 
       return result
     end

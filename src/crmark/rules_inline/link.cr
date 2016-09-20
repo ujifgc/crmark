@@ -35,7 +35,7 @@ module MarkdownIt
           pos += 1
           while pos < max
             code = state.src.charCodeAt(pos)
-            break if (code != 0x20 && code != 0x0A)
+            break if (code != 0x20 && code != 0x09 && code != 0x0A)
             pos += 1
           end
           return false if (pos >= max)
@@ -58,7 +58,7 @@ module MarkdownIt
           start = pos
           while pos < max
             code = state.src.charCodeAt(pos)
-            break if (code != 0x20 && code != 0x0A)
+            break if (code != 0x20 && code != 0x09 && code != 0x0A)
             pos += 1
           end
 
@@ -73,7 +73,7 @@ module MarkdownIt
             #                         ^^ skipping these spaces
             while pos < max
               code = state.src.charCodeAt(pos)
-              break if (code != 0x20 && code != 0x0A)
+              break if (code != 0x20 && code != 0x09 && code != 0x0A)
               pos += 1
             end
           else
@@ -89,13 +89,13 @@ module MarkdownIt
           #
           # Link reference
           #
-          return false #!!!if state.env[:references].nil?
+          return false if state.env[:references].empty?
 
           # [foo]  [bar]
           #      ^^ optional whitespace (can include newlines)
           while pos < max
             code = state.src.charCodeAt(pos);
-            break if (code != 0x20 && code != 0x0A)
+            break if (code != 0x20 && code != 0x09 && code != 0x0A)
             pos += 1
           end
 

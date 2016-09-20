@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 module MarkdownIt
   module RulesCore
-    class StateCore < RuleState
+    class StateCore < ParserState
 
     end
   end
