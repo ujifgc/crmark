@@ -116,7 +116,7 @@ module MarkdownIt
           # (collapsed reference link and shortcut reference link respectively)
           label = state.src[labelStart...labelEnd] if label.empty?
 
-          ref = state.env[:references][normalizeReference(label)]
+          ref = state.env[:references][normalizeReference(label)]?
           if (!ref)
             state.pos = oldPos
             return false
