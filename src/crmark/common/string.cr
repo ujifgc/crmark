@@ -3,7 +3,7 @@ class String
   # grab the remainder of the string starting at 'start'
   #------------------------------------------------------------------------------
   def slice_to_end(start)
-    self[start...self.size]
+    self[start..-1]
   end
   
   # port of Javascript function charCodeAt

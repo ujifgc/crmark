@@ -23,7 +23,7 @@ module MarkdownIt
             match = state.src.slice_to_end(pos).match(DIGITAL_RE)
             if match
               if !silent
-                code = match[1][0].downcase == "x" ? match[1].slice_to_end(1).to_i(16) : match[1].to_i
+                code = match[1][0].downcase == 'x' ? match[1].slice_to_end(1).to_i(16) : match[1].to_i
                 state.pending += isValidEntityCode(code) ? fromCodePoint(code) : fromCodePoint(0xFFFD)
               end
               state.pos += match[0].size
@@ -32,7 +32,7 @@ module MarkdownIt
           else
             match = state.src.slice_to_end(pos).match(NAMED_RE)
             if match
-              if HTMLEntities::MAPPINGS[match[1]]
+              if HTMLEntities::MAPPINGS[match[1]]?
                 state.pending += HTMLEntities::MAPPINGS[match[1]].chr if !silent
                 state.pos     += match[0].size
                 return true
