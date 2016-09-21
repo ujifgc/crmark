@@ -29,9 +29,7 @@ describe MarkdownIt do
   common_mark_examples.each do |example|
     i += 1
     next if i == 169 # ΑΓΩ, ref https://github.com/crystal-lang/crystal/issues/1648
-
-#    next unless i == 388
+    next if i == 509 # same, Толпой
     assert_render example.markdown, example.html, examples_file, example.example
-    puts "================================================================================= #{i}"
   end
 end
