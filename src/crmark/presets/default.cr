@@ -43,7 +43,8 @@ module MarkdownIt
             },
 
             inline: {
-              rules: [] of String
+              rules: [] of String,
+              rules2: [] of String
             }
           }
         }

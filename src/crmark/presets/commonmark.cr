@@ -69,6 +69,11 @@ module MarkdownIt
                 "link",
                 "newline",
                 "text"
+              ],
+              rules2: [
+                "balance_pairs",
+                "emphasis",
+                "text_collapse"
               ]
             }
           }

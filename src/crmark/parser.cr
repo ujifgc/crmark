@@ -323,20 +323,11 @@ module MarkdownIt
       end
       self.set(presets[:options]) if presets[:options]
 
-      if presets[:components]
-        presets[:components].each_key do |name|
-          if presets[:components][name][:rules]
-            case name
-            when :inline
-              inline.ruler.enableOnly(presets[:components][name][:rules])
-            when :block
-              block.ruler.enableOnly(presets[:components][name][:rules])
-            when :core
-              core.ruler.enableOnly(presets[:components][name][:rules])
-            end
-          end
-        end
-      end
+      inline.ruler.enableOnly(presets[:components][:inline][:rules])
+      inline.ruler2.enableOnly(presets[:components][:inline][:rules2])
+      block.ruler.enableOnly(presets[:components][:block][:rules])
+      core.ruler.enableOnly(presets[:components][:core][:rules])
+
       return self
     end
 
@@ -366,6 +357,7 @@ module MarkdownIt
       result << @core.ruler.enable(list, true)
       result << @block.ruler.enable(list, true)
       result << @inline.ruler.enable(list, true)
+      result << @inline.ruler2.enable(list, true)
       result.flatten!
       
       missed = list.select {|name| !result.include?(name) }
@@ -392,6 +384,7 @@ module MarkdownIt
       result << @core.ruler.disable(list, true)
       result << @block.ruler.disable(list, true)
       result << @inline.ruler.disable(list, true)
+      result << @inline.ruler2.disable(list, true)
       result.flatten!
 
       missed = list.select {|name| !result.include?(name) }

@@ -5,163 +5,122 @@ module MarkdownIt
     class Emphasis
       extend MarkdownIt::Common::Utils
       
-      # parse sequence of emphasis markers,
-      # "start" should point at a valid marker
-      #------------------------------------------------------------------------------
-      def self.scanDelims(state, start)
-        pos            = start
-        left_flanking  = true
-        right_flanking = true
-        max            = state.posMax
-        marker         = state.src.charCodeAt(start)
-
-        # treat beginning of the line as a whitespace
-        lastChar = start > 0 ? state.src.charCodeAt(start - 1) : 0x20
-
-        while (pos < max && state.src.charCodeAt(pos) == marker)
-          pos += 1
-        end
-
-        count = pos - start
-
-        # treat end of the line as a whitespace
-        nextChar = pos < max ? state.src.charCodeAt(pos) : 0x20
-
-        isLastPunctChar = isMdAsciiPunct(lastChar) || isPunctChar(lastChar.chr)
-        isNextPunctChar = isMdAsciiPunct(nextChar) || isPunctChar(nextChar.chr)
-
-        isLastWhiteSpace = isWhiteSpace(lastChar)
-        isNextWhiteSpace = isWhiteSpace(nextChar)
-
-        if (isNextWhiteSpace)
-          left_flanking = false
-        elsif (isNextPunctChar)
-          if (!(isLastWhiteSpace || isLastPunctChar))
-            left_flanking = false
-          end
-        end
-
-        if (isLastWhiteSpace)
-          right_flanking = false
-        elsif (isLastPunctChar)
-          if (!(isNextWhiteSpace || isNextPunctChar))
-            right_flanking = false
-          end
-        end
-
-        if (marker == 0x5F) # _
-          # "_" inside a word can neither open nor close an emphasis
-          can_open  = left_flanking  && (!right_flanking || isLastPunctChar)
-          can_close = right_flanking && (!left_flanking  || isNextPunctChar)
-        else
-          can_open  = left_flanking
-          can_close = right_flanking
-        end
-
-        return { can_open: can_open, can_close: can_close, delims: count }
-      end
-
-      #------------------------------------------------------------------------------
-      def self.emphasis(state, silent)
-        max    = state.posMax
-        start  = state.pos
+      def self.tokenize(state, silent)
+        start = state.pos
         marker = state.src.charCodeAt(start)
 
-        return false if (marker != 0x5F && marker != 0x2A) #  _ *
-        return false if (silent) # don't run any pairs in validation mode
+        return false if silent
 
-        res = scanDelims(state, start)
-        startCount = res[:delims]
-        if (!res[:can_open])
-          state.pos += startCount
-          # Earlier we checked !silent, but this implementation does not need it
-          state.pending += state.src[start...state.pos]
-          return true
+        return false if marker != 0x5F && marker != 0x2A # _ ;
+
+        scanned = state.scanDelims(state.pos, marker == 0x2A)
+
+        i = 0
+        while i < scanned.size
+          token         = state.push("text", "", 0);
+          token.content = marker.chr.to_s
+
+          state.delimiters.push(Delimiter.new(
+            # Char code of the starting marker (number).
+            #
+            marker: marker,
+
+            # Total length of these series of delimiters.
+            #
+            size: scanned.size,
+
+            # An amount of characters before this one that's equivalent to
+            # current one. In plain English: if this delimiter does not open
+            # an emphasis, neither do previous `jump` characters.
+            #
+            # Used to skip sequences like "*****" in one step, for 1st asterisk
+            # value will be 0, for 2nd it's 1 and so on.
+            #
+            jump:   i,
+
+            # A position of the token this delimiter corresponds to.
+            #
+            token:  state.tokens.size - 1,
+
+            # Token level.
+            #
+            level:  state.level,
+
+            # If this delimiter is matched as a valid opener, `end` will be
+            # equal to its position, otherwise it's `-1`.
+            #
+            end:    -1,
+
+            # Boolean flags that determine if this delimiter could open or close
+            # an emphasis.
+            #
+            open:   scanned.open,
+            close:  scanned.close
+          ))
+          i += 1
         end
 
-        state.pos = start + startCount
-        stack = [ startCount ]
+        state.pos += scanned.size
 
-        while (state.pos < max)
-          if state.src.charCodeAt(state.pos) == marker
-            res = scanDelims(state, state.pos)
-            count = res[:delims]
-            if (res[:can_close])
-              oldCount = stack.pop()
-              newCount = count
+        true
+      end
 
-              while (oldCount != newCount)
-                if (newCount < oldCount)
-                  stack.push(oldCount - newCount)
-                  break
-                end
+      def self.postProcess(state, silent)
+        delimiters = state.delimiters
+        max = delimiters.size
 
-                # assert(newCount > oldCount)
-                newCount -= oldCount
+        i = 0
+        while i < max
+          startDelim = delimiters[i]
 
-                break if (stack.size == 0)
-                state.pos += oldCount
-                oldCount = stack.pop()
-              end
-
-              if (stack.size == 0)
-                startCount = oldCount
-                found      = true
-                break
-              end
-              state.pos += count
-              next
-            end
-
-            stack.push(count) if (res[:can_open])
-            state.pos += count
+          if startDelim.marker != 0x5F && startDelim.marker != 0x2A # _ *
+            i += 1
             next
           end
 
-          state.md.inline.skipToken(state)
+          # Process only opening markers
+          if startDelim.end == -1
+            i += 1
+            next
+          end
+
+          endDelim = delimiters[startDelim.end]
+
+          # If the next delimiter has the same marker and is adjacent to this one,
+          # merge those into one strong delimiter.
+          #
+          # `<em><em>whatever</em></em>` -> `<strong>whatever</strong>`
+          #
+          isStrong = (i + 1 < max) &&
+                     (delimiters[i + 1].end == startDelim.end - 1) &&
+                     (delimiters[i + 1].token == startDelim.token + 1) &&
+                     (delimiters[startDelim.end - 1].token == endDelim.token - 1) &&
+                     delimiters[i + 1].marker == startDelim.marker
+
+          ch = startDelim.marker.to_s
+
+          token         = state.tokens[startDelim.token]
+          token.type    = isStrong ? "strong_open" : "em_open"
+          token.tag     = isStrong ? "strong" : "em"
+          token.nesting = 1
+          token.markup  = isStrong ? ch + ch : ch
+          token.content = ""
+
+          token         = state.tokens[endDelim.token]
+          token.type    = isStrong ? "strong_close" : "em_close"
+          token.tag     = isStrong ? "strong" : "em"
+          token.nesting = -1
+          token.markup  = isStrong ? ch + ch : ch
+          token.content = ""
+
+          if (isStrong)
+            state.tokens[delimiters[i + 1].token].content = ""
+            state.tokens[delimiters[startDelim.end - 1].token].content = ""
+            i += 1
+          end
+          i += 1
         end
-
-        if (!found)
-          # parser failed to find ending tag, so it's not valid emphasis
-          state.pos = start
-          return false
-        end
-
-        # found!
-        state.posMax = state.pos
-        state.pos    = start + startCount
-
-        # Earlier we checked !silent, but this implementation does not need it
-
-        # we have `startCount` starting and ending markers,
-        # now trying to serialize them into tokens
-        count = startCount
-        while count > 1
-          token        = state.push("strong_open", "strong", 1)
-          token.markup = marker.chr.to_s + marker.chr.to_s
-          count -= 2
-        end
-        if (count % 2 == 1)
-          token        = state.push("em_open", "em", 1)
-          token.markup = marker.chr.to_s
-        end
-
-        state.md.inline.tokenize(state)
-
-        if (count % 2 == 1)
-          token        = state.push("em_close", "em", -1)
-          token.markup = marker.chr.to_s
-        end
-        count = startCount
-        while count > 1
-          token        = state.push("strong_close", "strong", -1)
-          token.markup = marker.chr.to_s + marker.chr.to_s
-          count -= 2
-        end
-
-        state.pos     = state.posMax + startCount
-        state.posMax  = max
-        return true
+        true
       end
 
     end

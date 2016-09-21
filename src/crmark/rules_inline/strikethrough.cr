@@ -5,126 +5,116 @@ module MarkdownIt
     class Strikethrough
       extend Common::Utils
       
-      # parse sequence of markers,
-      # "start" should point at a valid marker
-      def self.scanDelims(state, start)
-        pos       = start
-        can_open  = true
-        can_close = true
-        max       = state.posMax
-        marker    = state.src.charCodeAt(start)
-
-        # treat beginning of the line as a whitespace
-        lastChar = start > 0 ? state.src.charCodeAt(start - 1) : 0x20
-
-        while (pos < max && state.src.charCodeAt(pos) == marker)
-          pos += 1
-        end
-
-        if (pos >= max)
-          can_open = false
-        end
-
-        count = pos - start
-
-        # treat end of the line as a whitespace
-        nextChar = pos < max ? state.src.charCodeAt(pos) : 0x20
-
-        isLastPunctChar = isMdAsciiPunct(lastChar) || isPunctChar(lastChar.chr)
-        isNextPunctChar = isMdAsciiPunct(nextChar) || isPunctChar(nextChar.chr)
-
-        isLastWhiteSpace = isWhiteSpace(lastChar)
-        isNextWhiteSpace = isWhiteSpace(nextChar)
-
-        if (isNextWhiteSpace)
-          can_open = false
-        elsif (isNextPunctChar)
-          if (!(isLastWhiteSpace || isLastPunctChar))
-            can_open = false
-          end
-        end
-
-        if (isLastWhiteSpace)
-          can_close = false
-        elsif (isLastPunctChar)
-          if (!(isNextWhiteSpace || isNextPunctChar))
-            can_close = false
-          end
-        end
-
-        return { can_open: can_open, can_close: can_close, delims: count }
-      end
-
-      #------------------------------------------------------------------------------
-      def self.strikethrough(state, silent)
-        max    = state.posMax
-        start  = state.pos
+      def self.tokenize(state, silent)
+        start = state.pos
         marker = state.src.charCodeAt(start)
 
-        return false if (marker != 0x7E) # ~
-        return false if (silent)  # don't run any pairs in validation mode
+        return false if silent
 
-        res        = scanDelims(state, start)
-        startCount = res[:delims]
-        if (!res[:can_open])
-          state.pos += startCount
-          # Earlier we checked !silent, but this implementation does not need it
-          state.pending += state.src[start...state.pos]
-          return true
+        return false if marker != 0x7E # ~
+
+        scanned = state.scanDelims(state.pos, true)
+        len = scanned.size
+        ch = marker.chr.to_s
+
+        return false if len < 2
+
+        if len % 2 != 0
+          token         = state.push("text", "", 0)
+          token.content = ch
+          len -= 1
         end
 
-        stack = (startCount / 2).floor
-        return false if (stack <= 0)
-        state.pos = start + startCount
+        i = 0
+        while i < len
+          token         = state.push("text", "", 0)
+          token.content = ch + ch
 
-        while (state.pos < max)
-          if (state.src.charCodeAt(state.pos) == marker)
-            res      = scanDelims(state, state.pos)
-            count    = res[:delims]
-            tagCount = (count / 2).floor
-            if (res[:can_close])
-              if (tagCount >= stack)
-                state.pos += count - 2
-                found = true
-                break
-              end
-              stack     -= tagCount
-              state.pos += count
-              next
-            end
+          state.delimiters.push(Delimiter.new(
+            marker: marker,
+            jump:   i,
+            token:  state.tokens.size - 1,
+            level:  state.level,
+            end:    -1,
+            open:   scanned.open,
+            close:  scanned.close
+          ))
+          i += 2
+        end
 
-            stack += tagCount if (res[:can_open])
-            state.pos += count
+        state.pos += scanned.size
+
+        true
+      end
+
+      def self.postProcess(state, silent)
+        loneMarkers = [] of Int32
+        delimiters = state.delimiters
+        max = delimiters.size
+
+        i = 0
+        while i < max
+          startDelim = delimiters[i]
+
+          if startDelim.marker != 0x7E # ~
+            i += 1
             next
           end
 
-          state.md.inline.skipToken(state)
+          if startDelim.end == -1
+            i += 1
+            next
+          end
+
+          endDelim = delimiters[startDelim.end]
+
+          token         = state.tokens[startDelim.token]
+          token.type    = "s_open"
+          token.tag     = "s"
+          token.nesting = 1
+          token.markup  = "~~"
+          token.content = ""
+
+          token         = state.tokens[endDelim.token]
+          token.type    = "s_close"
+          token.tag     = "s"
+          token.nesting = -1
+          token.markup  = "~~"
+          token.content = ""
+
+          if (state.tokens[endDelim.token - 1].type == "text" &&
+              state.tokens[endDelim.token - 1].content == "~")
+
+            loneMarkers.push(endDelim.token - 1)
+          end
+          i += 1
         end
 
-        if (!found)
-          # parser failed to find ending tag, so it's not valid emphasis
-          state.pos = start
-          return false
+        # If a marker sequence has an odd number of characters, it"s splitted
+        # like this: `~~~~~` -> `~` + `~~` + `~~`, leaving one marker at the
+        # start of the sequence.
+        #
+        # So, we have to move all those markers after subsequent s_close tags.
+        #
+        while loneMarkers.size > 0
+          i = loneMarkers.pop
+          j = i + 1
+
+          while (j < state.tokens.size && state.tokens[j].type == "s_close")
+            j += 1
+          end
+
+          j -= 1
+
+          if i != j
+            token = state.tokens[j]
+            state.tokens[j] = state.tokens[i]
+            state.tokens[i] = token
+          end
         end
 
-        # found!
-        state.posMax = state.pos
-        state.pos    = start + 2
-
-        # Earlier we checked !silent, but this implementation does not need it
-        token        = state.push("s_open", "s", 1)
-        token.markup = "~~"
-
-        state.md.inline.tokenize(state)
-
-        token        = state.push("s_close", "s", -1)
-        token.markup = "~~"
-
-        state.pos    = state.posMax + 2
-        state.posMax = max
-        return true
+        true
       end
-
     end
   end
 end

@@ -8,7 +8,7 @@ require "./rules_inline/*"
 module MarkdownIt
   class ParserInline
     
-    property :ruler
+    property :ruler, :ruler2
 
     #------------------------------------------------------------------------------
     # Parser rules
@@ -18,13 +18,20 @@ module MarkdownIt
       { "newline",         -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Newline.newline(state, silent) } },
       { "escape",          -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Escape.escape(state, silent) } },
       { "backticks",       -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Backticks.backtick(state, silent) } },
-      { "strikethrough",   -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Strikethrough.strikethrough(state, silent) } },
-      { "emphasis",        -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Emphasis.emphasis(state, silent) } },
+      { "strikethrough",   -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Strikethrough.tokenize(state, silent) } },
+      { "emphasis",        -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Emphasis.tokenize(state, silent) } },
       { "link",            -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Link.link(state, silent) } },
       { "image",           -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Image.image(state, silent) } },
       { "autolink",        -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Autolink.autolink(state, silent) } },
       { "html_inline",     -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::HtmlInline.html_inline(state, silent) } },
       { "entity",          -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Entity.entity(state, silent) } },
+    ]
+
+    RULES2 = [
+      { "balance_pairs",   -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::BalancePairs.link_pairs(state) } },
+      { "strikethrough",   -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Strikethrough.postProcess(state, silent) } },
+      { "emphasis",        -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::Emphasis.postProcess(state, silent) } },
+      { "text_collapse",   -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesInline::TextCollapse.text_collapse(state) } },
     ]
 
     #------------------------------------------------------------------------------
@@ -36,6 +43,12 @@ module MarkdownIt
 
       RULES.each do |rule|
         @ruler.push(*rule)
+      end
+
+      @ruler2 = Ruler.new
+
+      RULES2.each do |rule|
+        @ruler2.push(*rule)
       end
     end
 
@@ -115,6 +128,11 @@ module MarkdownIt
       state = RulesInline::StateInline.new(str, md, env, outTokens)
 
       tokenize(state)
+
+      rules = ruler2.getRules("")
+      rules.each do |rule|
+        rule.call(state, 0, 0, false)
+      end
     end
   end
 end

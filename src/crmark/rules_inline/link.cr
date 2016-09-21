@@ -15,17 +15,17 @@ module MarkdownIt
         max    = state.posMax
         start  = state.pos
 
-        return false if (state.src.charCodeAt(state.pos) != 0x5B) # [
+        return false if state.src.charCodeAt(state.pos) != 0x5B # [
 
         label = ""
         labelStart = state.pos + 1
         labelEnd   = parseLinkLabel(state, state.pos, true)
 
         # parser failed to find ']', so it's not a valid link
-        return false if (labelEnd < 0)
+        return false if labelEnd < 0
 
         pos = labelEnd + 1
-        if (pos < max && state.src.charCodeAt(pos) == 0x28) # (
+        if pos < max && state.src.charCodeAt(pos) == 0x28 # (
           #
           # Inline link
           #
@@ -90,14 +90,6 @@ module MarkdownIt
           # Link reference
           #
           return false if state.env[:references].empty?
-
-          # [foo]  [bar]
-          #      ^^ optional whitespace (can include newlines)
-          while pos < max
-            code = state.src.charCodeAt(pos);
-            break if (code != 0x20 && code != 0x09 && code != 0x0A)
-            pos += 1
-          end
 
           if (pos < max && state.src.charCodeAt(pos) == 0x5B)  # [
             start = pos + 1

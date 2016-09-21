@@ -78,7 +78,7 @@ module MarkdownIt
           pos += 1
         end
 
-        return false if (labelEnd < 0 || str.charCodeAt(labelEnd + 1) != 0x3A) # :
+        return false if (labelEnd < 0 || (labelEnd + 1 < max && str.charCodeAt(labelEnd + 1) != 0x3A)) # :
 
         # [label]:   destination   'title'
         #         ^^^ skip optional whitespace here

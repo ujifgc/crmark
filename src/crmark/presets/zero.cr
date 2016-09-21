@@ -52,6 +52,10 @@ module MarkdownIt
             inline: {
               rules: [
                 "text"
+              ],
+              rules2: [
+                "balance_pairs",
+                "text_collapse"
               ]
             }
           }

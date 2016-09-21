@@ -33,7 +33,7 @@ module MarkdownIt
             match = state.src.slice_to_end(pos).match(NAMED_RE)
             if match
               if HTMLEntities::MAPPINGS[match[1]]?
-                state.pending += HTMLEntities::MAPPINGS[match[1]].chr if !silent
+                state.pending += HTMLEntities::MAPPINGS[match[1]] if !silent
                 state.pos     += match[0].size
                 return true
               end

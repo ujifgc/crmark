@@ -13,6 +13,7 @@ module MarkdownIt
         @pendingLevel = 0
         @cache        = {} of Int32 => Int32     # Stores { start: end } pairs. Useful for backtrack !!!
                                                  # optimization of pairs parse (emphasis, strikes).
+        @delimiters = [] of Delimiter;   # Emphasis-like delimiters
         @inlineMode = false
 
         @bMarks = [] of Int32 # line begin offsets for fast jumps

@@ -72,7 +72,7 @@ module MarkdownIt
         return str if (str.index("\\").nil? && str.index("&").nil?)
 
         return str.gsub(UNESCAPE_ALL_RE) do |match|
-          next $1 if ($1)
+          next $1 if $1?
           next replaceEntityPattern(match, $2)
         end
       end
@@ -129,7 +129,7 @@ module MarkdownIt
       # Currently without astral characters support.
       #------------------------------------------------------------------------------
       def isPunctChar(char)
-        return UNICODE_PUNCT_RE =~ char
+        UNICODE_PUNCT_RE =~ char ? true : false
       end
 
 

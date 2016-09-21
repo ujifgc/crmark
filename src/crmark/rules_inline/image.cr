@@ -91,14 +91,6 @@ module MarkdownIt
           #
           return false if state.env[:references].empty?
 
-          # [foo]  [bar]
-          #      ^^ optional whitespace (can include newlines)
-          while pos < max
-            code = state.src.charCodeAt(pos)
-            break if (code != 0x20 && code != 0x09 && code != 0x0A)
-            pos += 1
-          end
-
           if (pos < max && state.src.charCodeAt(pos) == 0x5B) # [
             start = pos + 1
             pos   = parseLinkLabel(state, pos)
@@ -130,16 +122,7 @@ module MarkdownIt
         # so all that's left to do is to call tokenizer.
         #
         if (!silent)
-          state.pos    = labelStart
-          state.posMax = labelEnd
-
-          newState = RulesInline::StateInline.new(
-            state.src[labelStart...labelEnd],
-            state.md,
-            state.env,
-            tokens = [] of Token
-          )
-          newState.md.inline.tokenize(newState)
+          state.md.inline.parse(state.src[labelStart...labelEnd], state.md, state.env, tokens = [] of Token)
 
           token          = state.push("image", "img", 0)
           token.attrs    = attrs = [ [ "src", href ], [ "alt", "" ] ]

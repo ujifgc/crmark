@@ -1,6 +1,21 @@
 module MarkdownIt
   alias LinkReference = NamedTuple(title: String, href: String)
   alias StateEnv = NamedTuple(references: Hash(String, LinkReference))
+  class Delimiter
+    property :marker, :size, :jump, :token, :level, :end, :open, :close
+
+    def initialize(
+      @marker = 0x00,
+      @size = 0,
+      @jump = 0,
+      @token = 0,
+      @level = 0,
+      @end = 0,
+      @open = false,
+      @close = false
+    )
+    end
+  end
 
   class ParserState
     property :src, :md, :env, :tokens
@@ -9,10 +24,11 @@ module MarkdownIt
     property :bMarks, :eMarks, :tShift, :sCount, :bsCount
     property :blkIndent, :line, :lineMax, :tight, :parentType, :ddIndent
     property :level, :result
-      
+
     #inline
     property :pos, :posMax, :level
     property :pending, :pendingLevel, :cache
+    property :delimiters
 
     #core
     property :inlineMode
@@ -27,6 +43,9 @@ module MarkdownIt
       @pendingLevel = 0
       @cache        = {} of Int32 => Int32     # Stores { start: end } pairs. Useful for backtrack !!!
                                                # optimization of pairs parse (emphasis, strikes).
+
+      @delimiters = [] of Delimiter;   # Emphasis-like delimiters
+
       @bMarks = [] of Int32 # line begin offsets for fast jumps
       @eMarks = [] of Int32 # line end offsets for fast jumps
       @tShift = [] of Int32 # 
@@ -77,6 +96,10 @@ module MarkdownIt
     end
 
     def push(type, tag, nesting)
+      raise "not implemented"
+    end
+
+    def scanDelims(start, canSplitWords)
       raise "not implemented"
     end
   end

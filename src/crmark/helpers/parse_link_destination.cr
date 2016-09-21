@@ -16,7 +16,7 @@ module MarkdownIt
           pos += 1
           while (pos < max)
             code = str.charCodeAt(pos)
-            return result if (code == 0x0A ) # \n
+            return result if (code == 0x0A || code == 0x20 || code == 0x09) # \n space tab
             if (code == 0x3E) #  >
               return {ok: true, pos: pos+1, lines: 0, str: unescapeAll(str[(start + 1)...pos])}
             end
