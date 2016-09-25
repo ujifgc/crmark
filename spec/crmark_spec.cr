@@ -1,7 +1,6 @@
 require "./spec_helper"
 
 require "spec"
-require "markdown"
 require "json"
 
 class CommonMarkExample
