@@ -23,10 +23,15 @@ module MarkdownIt
           while j >= 0
             currDelim = delimiters[j]
 
-            if currDelim.open && currDelim.marker == lastDelim.marker && currDelim.end < 0 && currDelim.level == lastDelim.level
-              odd_match = (currDelim.close || lastDelim.open) && ((currDelim.size + lastDelim.size) % 3 == 0)
+            if currDelim.open &&
+               currDelim.marker == lastDelim.marker &&
+               currDelim.end < 0 &&
+               currDelim.level == lastDelim.level
 
-              if (!odd_match)
+              odd_match = (currDelim.close || lastDelim.open) &&
+                          (currDelim.size > 0) && (lastDelim.size > 0) &&
+                          ((currDelim.size + lastDelim.size) % 3 == 0)
+              if !odd_match
                 lastDelim.jump = i - j
                 lastDelim.open = false
                 currDelim.end  = i

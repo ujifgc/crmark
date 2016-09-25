@@ -83,7 +83,7 @@ module MarkdownIt
           token.content = "".to_slice
 
           if (state.tokens[endDelim.token - 1].type == "text" &&
-              state.tokens[endDelim.token - 1].content == "~")
+              state.tokens[endDelim.token - 1].content[0] == '~'.ord)
 
             loneMarkers.push(endDelim.token - 1)
           end
