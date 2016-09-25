@@ -216,6 +216,7 @@ module MarkdownIt
             first += 1
           end
 
+          last = @src.size if last > @src.size
           if lineIndent > indent
             # partially expanding tabs in code blocks, e.g '\t\tfoobar'
             # with indent=2 becomes '  \tfoobar'

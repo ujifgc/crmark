@@ -23,8 +23,10 @@ module MarkdownIt
         # skip spaces after ">" and re-calculate offset
         initial = offset = state.sCount[startLine] + pos - (state.bMarks[startLine] + state.tShift[startLine])
 
-        # skip one optional space after '>'
-        if state.src.charCodeAt(pos) == 0x20 # space
+        if pos >= state.src.size
+          spaceAfterMarker = false
+        elsif state.src.charCodeAt(pos) == 0x20 # space
+          # skip one optional space after '>'
           # ' >   test '
           #     ^ -- position start of line here:
           pos += 1
