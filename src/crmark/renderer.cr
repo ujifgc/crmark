@@ -28,8 +28,8 @@ module MarkdownIt
       langName  = ""
 
       if !token.info.empty?
-        langName = unescapeAll(token.info.strip.split(/\s+/)[0])
-        token.attrPush([ "class", options[:langPrefix] + langName ])
+        langName = unescapeAll(token.info).strip.split(/\s+/)[0]
+        token.attrPush([ "class", options[:langPrefix] + langName ]) unless langName.empty?
       end
 
 #      if options[:highlight]!!!
@@ -246,11 +246,10 @@ module MarkdownIt
     #------------------------------------------------------------------------------
     def renderInlineAsText(tokens, options, env)
       result = ""
-      rules  = @rules
 
       0.upto(tokens.size - 1) do |i|
         if tokens[i].type == "text"
-          result += rules["text"].call(tokens, i, options, env, self)
+          result += String.new(tokens[i].content)
         elsif tokens[i].type == "image"
           result += renderInlineAsText(tokens[i].children, options, env)
         end

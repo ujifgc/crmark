@@ -51,7 +51,7 @@ module MarkdownIt
         return HTMLEntities::MAPPINGS[name] if HTMLEntities::MAPPINGS[name]?
 
         if (name[0].ord == 0x23 && DIGITAL_ENTITY_TEST_RE.match(name)) # '#'
-          code = name[1].downcase == "x" ? name[2..-1].to_i(16) : name[1..-1].to_i
+          code = name[1].downcase == 'x' ? name[2..-1].to_i(16) : name[1..-1].to_i
           if (isValidEntityCode(code))
             return fromCodePoint(code)
           end
