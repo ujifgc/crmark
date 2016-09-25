@@ -1,18 +1,6 @@
 require "./spec_helper"
 
 require "spec"
-require "json"
-
-class CommonMarkExample
-  JSON.mapping(
-    end_line: Int32,
-    example: Int32,
-    start_line: Int32,
-    markdown: String,
-    html: String,
-    section: String
-  )
-end
 
 private def assert_render(input, output, file = __FILE__, line = __LINE__)
   it "renders #{input.inspect}", file, line do
@@ -22,11 +10,35 @@ private def assert_render(input, output, file = __FILE__, line = __LINE__)
 end
 
 describe MarkdownIt do
-  examples_file = "#{__DIR__}/CommonMark.json"
-  common_mark_examples = Array(CommonMarkExample).from_json File.read(examples_file)
-  i = 0
-  common_mark_examples.each do |example|
-    i += 1
-    assert_render example.markdown, example.html, examples_file, example.example
+  spec_file = "#{__DIR__}/commonmark/spec.txt"
+  data = File.read(spec_file)
+  source = nil
+  result = nil
+  example_line = 0
+  data.each_line.with_index.each do |line, index|
+    if line == "`"*32 + " example\n"
+      example_line = index
+      source = ""
+      next
+    end
+    if line == ".\n"
+      result = ""
+      next
+    end
+    if line == "`"*32 + "\n" && source && result
+      source = source.gsub("→", "\t")
+      result = result.gsub("→", "\t")
+      assert_render source, result, spec_file, example_line
+      source = nil
+      result = nil
+      next
+    end
+    if result
+      result += line
+      next
+    elsif source
+      source += line
+      next
+    end
   end
 end
