@@ -5,11 +5,13 @@ module MarkdownIt
     class StateInline < ParserState
       include Common::Utils
 
+      @pending : String
+
       # Flush pending text
       #------------------------------------------------------------------------------
       def pushPending
         token         = Token.new("text", "", 0)
-        token.content = @pending
+        token.content = @pending.to_slice
         token.level   = @pendingLevel
         @tokens.push(token)
         @pending      = ""

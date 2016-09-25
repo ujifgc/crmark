@@ -4,8 +4,10 @@ module MarkdownIt
   module RulesBlock
     class StateBlock < ParserState
 
+      @pending : String
+
       #------------------------------------------------------------------------------
-      def initialize(@src : String, @md : Parser, @env, @tokens : Array(Token))
+      def initialize(@src : Bytes, @md : Parser, @env, @tokens : Array(Token))
         @pos          = 0
         @posMax       = @src.size
         @level        = 0
@@ -181,7 +183,7 @@ module MarkdownIt
       def getLines(line_begin, line_end, indent, keepLastLF)
         line = line_begin
 
-        return "" if line_begin >= line_end
+        return "".to_slice if line_begin >= line_end
 
         queue = Array(String).new(line_end - line_begin, "")
 
@@ -217,16 +219,16 @@ module MarkdownIt
           if lineIndent > indent
             # partially expanding tabs in code blocks, e.g '\t\tfoobar'
             # with indent=2 becomes '  \tfoobar'
-            queue[i] = " "*(lineIndent - indent) + @src[first...last]
+            queue[i] = " "*(lineIndent - indent) + String.new(@src[first...last])
           else
-            queue[i] = @src[first...last]
+            queue[i] = String.new(@src[first...last])
           end
 
           line += 1
           i    += 1
         end
 
-        return queue.join("")
+        return queue.join("").to_slice # !!!
       end
 
     end

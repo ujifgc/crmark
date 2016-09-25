@@ -5,7 +5,7 @@ module MarkdownIt
     property :marker, :size, :jump, :token, :level, :end, :open, :close
 
     def initialize(
-      @marker = 0x00,
+      @marker = 0x00_u8,
       @size = 0,
       @jump = 0,
       @token = 0,
@@ -34,8 +34,9 @@ module MarkdownIt
     property :inlineMode
 
     @posMax : Int32
+    @pending : String
 
-    def initialize(@src : String, @md : Parser, @env : StateEnv, @tokens = [] of Token)
+    def initialize(@src : Bytes, @md : Parser, @env : StateEnv, @tokens = [] of Token)
       @pos          = 0
       @posMax       = @src.size
       @level        = 0

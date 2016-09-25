@@ -17,7 +17,7 @@ module MarkdownIt
       (0...128).each do |i|
         ch = i.chr
 
-        if (ch.to_s =~ /^[0-9a-z]$/i)
+        if ch.to_s.match(/^[0-9a-z]$/i)
           # always allow unencoded alphanumeric characters
           cache.push(ch.to_s)
         else
@@ -50,7 +50,7 @@ module MarkdownIt
         code = string[i].ord
 
         if (keepEscaped && code == 0x25 && i + 2 < l) #  %
-          if (/^[0-9a-f]{2}$/i =~ (string[(i + 1)...(i + 3)]))
+          if (/^[0-9a-f]{2}$/i).match(string[(i + 1)...(i + 3)])
             result += string[i...(i + 3)]
             i += 3
             next

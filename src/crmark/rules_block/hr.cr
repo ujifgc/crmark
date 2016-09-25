@@ -24,8 +24,8 @@ module MarkdownIt
         while (pos < max)
           ch   = state.src.charCodeAt(pos)
           pos += 1
-          return false if (ch != marker && ch != 0x20 && ch != 0x09) # space
-          cnt += 1 if (ch == marker)
+          return false if ch != marker && !ch.space_tab? # space
+          cnt += 1 if ch == marker
         end
 
         return false if (cnt < 3)

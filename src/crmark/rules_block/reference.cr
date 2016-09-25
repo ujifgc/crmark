@@ -87,7 +87,7 @@ module MarkdownIt
           ch = str.charCodeAt(pos)
           if (ch == 0x0A)
             lines += 1
-          elsif (ch == 0x20 || ch == 0x09)
+          elsif ch.space_tab?
             # skip
           else
             break
@@ -165,7 +165,7 @@ module MarkdownIt
           return false
         end
 
-        label = normalizeReference(str[1...labelEnd])
+        label = normalizeReference(String.new str[1...labelEnd])
         if label == ""
           # CommonMark 0.20 disallows empty labels
           return false

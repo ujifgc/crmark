@@ -13,11 +13,12 @@ module MarkdownIt
 
         return false if state.src.charCodeAt(pos) != 0x3C  # <
 
-        tail = state.src[pos..-1]
+        next_newline = state.src.index('\n'.ord) || -1
+        tail = state.src[pos..next_newline]
 
-        return false if !tail.includes?(">")
+        return false if !tail.includes?('>'.ord)
 
-        if linkMatch = tail.match(AUTOLINK_RE)
+        if linkMatch = String.new(tail).match(AUTOLINK_RE)
           url = linkMatch[0][1...-1]
           fullUrl = state.md.normalizeLink.call(url)
           return false if (!state.md.validateLink.call(fullUrl))
@@ -29,7 +30,7 @@ module MarkdownIt
             token.info    = "auto"
 
             token         = state.push("text", "", 0)
-            token.content = state.md.normalizeLinkText.call(url)
+            token.content = state.md.normalizeLinkText.call(url).to_slice # !!!
 
             token         = state.push("link_close", "a", -1)
             token.markup  = "autolink"
@@ -40,7 +41,7 @@ module MarkdownIt
           return true
         end
 
-        if emailMatch = tail.match(EMAIL_RE)
+        if emailMatch = String.new(tail).match(EMAIL_RE)
           url = emailMatch[0][1...-1]
           fullUrl = state.md.normalizeLink.call("mailto:" + url)
           return false if (!state.md.validateLink.call(fullUrl))
@@ -52,7 +53,7 @@ module MarkdownIt
             token.info    = "auto"
 
             token         = state.push("text", "", 0)
-            token.content = state.md.normalizeLinkText.call(url)
+            token.content = state.md.normalizeLinkText.call(url).to_slice # !!!
 
             token         = state.push("link_close", "a", -1)
             token.markup  = "autolink"

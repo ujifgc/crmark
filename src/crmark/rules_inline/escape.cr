@@ -4,12 +4,9 @@ module MarkdownIt
   module RulesInline
     class Escape
 
-      ESCAPED = [] of Int32
+      ESCAPED = Array(Bool).new(255, false)
 
-      0.upto(255) { |i| ESCAPED.push(0) }
-
-      %{\\!"#$%&\'()*+,./:;<=>?@[]^_`{|}~-}.split("").each { |ch| ESCAPED[ch[0].ord] = 1 }
-
+      "\\!\"#$%&\'()*+,./:;<=>?@[]^_`{|}~-".each_byte { |ch| ESCAPED[ch] = true }
 
       #------------------------------------------------------------------------------
       def self.escape(state, silent)
@@ -23,22 +20,20 @@ module MarkdownIt
         if pos < max
           ch = state.src.charCodeAt(pos)
 
-          if ch < 256 && ESCAPED[ch] != 0
-            state.pending += state.src[pos] if !silent
+          if ESCAPED[ch]?
+            state.pending += state.src[pos].chr if !silent
             state.pos     += 2
             return true
           end
 
           if ch == 0x0A
-            if !silent
-              state.push("hardbreak", "br", 0)
-            end
+            state.push("hardbreak", "br", 0) if !silent
 
             pos += 1
             # skip leading whitespaces from next line
             while pos < max
               ch = state.src.charCodeAt(pos)
-              break if ch != 0x20 && ch != 0x09
+              break if !ch.space_tab?
               pos += 1
             end
 

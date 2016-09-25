@@ -5,6 +5,8 @@ module MarkdownIt
   module RulesInline
     class HtmlInline
       include MarkdownIt::Common::HtmlRe
+
+      MAX_HTML_SIZE = 200000
       
       #------------------------------------------------------------------------------
       def self.isLetter(ch)
@@ -33,12 +35,13 @@ module MarkdownIt
           return false
         end
 
-        match = state.src.slice_to_end(pos).match(HTML_TAG_RE)
+        html_size = [MAX_HTML_SIZE, state.src.size - pos].min
+        match = String.new(state.src[pos, html_size]).match(HTML_TAG_RE)
         return false if !match
 
         if !silent
           token         = state.push("html_inline", "", 0)
-          token.content = state.src[pos...(pos + match[0].size)]
+          token.content = state.src[pos, match[0].bytesize]
         end
         state.pos += match[0].size
         return true

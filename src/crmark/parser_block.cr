@@ -13,7 +13,7 @@ module MarkdownIt
     RULES = [
       # First 2 params - rule name & source. Secondary array - list of rules,
       # which can be terminated by this one.
-      { "table",        -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Table.table(state, startLine, endLine, silent) },      [ "paragraph", "reference" ] },
+#      { "table",        -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Table.table(state, startLine, endLine, silent) },      [ "paragraph", "reference" ] },
       { "code",         -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Code.code(state, startLine, endLine, silent) }, [] of String },
       { "fence",        -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Fence.fence(state, startLine, endLine, silent) },      [ "paragraph", "reference", "blockquote", "list" ] },
       { "blockquote",   -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Blockquote.blockquote(state, startLine, endLine, silent) }, [ "paragraph", "reference", "list" ] },
@@ -99,7 +99,7 @@ module MarkdownIt
     #
     # Process input string and push block tokens into `outTokens`
     #------------------------------------------------------------------------------
-    def parse(src, md, env, outTokens)
+    def parse(src : Bytes, md, env, outTokens)
       state = RulesBlock::StateBlock.new(src, md, env, outTokens)
 
       tokenize(state, state.line, state.lineMax)

@@ -118,7 +118,7 @@ module MarkdownIt
         if ((posAfterMarker = skipOrderedListMarker(state, startLine)) >= 0)
           isOrdered = true
           start = state.bMarks[startLine] + state.tShift[startLine]
-          markerValue = state.src[start, posAfterMarker - start - 1].to_i
+          markerValue = String.new(state.src[start, posAfterMarker - start - 1]).to_i
 
           # If we're starting a new ordered list right after
           # a paragraph, it should start with 1.

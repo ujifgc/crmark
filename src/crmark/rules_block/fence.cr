@@ -28,7 +28,7 @@ module MarkdownIt
         markup = state.src[mem...pos]
         params = state.src[pos...max]
 
-        return false if params.includes?("`")
+        return false if params.includes?(0x60) # `
 
         # Since start is found, we can report success here in validation mode
         return true if silent
@@ -81,9 +81,9 @@ module MarkdownIt
         state.line    = nextLine + (haveEndMarker ? 1 : 0)
 
         token         = state.push("fence", "code", 0)
-        token.info    = params
+        token.info    = String.new(params)
         token.content = state.getLines(startLine + 1, nextLine, len, true)
-        token.markup  = markup
+        token.markup  = String.new(markup)
         token.map     = [ startLine, state.line ]
 
         return true

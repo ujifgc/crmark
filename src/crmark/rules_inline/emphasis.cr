@@ -18,7 +18,7 @@ module MarkdownIt
         i = 0
         while i < scanned.size
           token         = state.push("text", "", 0);
-          token.content = marker.chr.to_s
+          token.content = state.src[start, 1]
 
           state.delimiters.push(Delimiter.new(
             # Char code of the starting marker (number).
@@ -104,18 +104,18 @@ module MarkdownIt
           token.tag     = isStrong ? "strong" : "em"
           token.nesting = 1
           token.markup  = isStrong ? ch + ch : ch
-          token.content = ""
+          token.content = "".to_slice
 
           token         = state.tokens[endDelim.token]
           token.type    = isStrong ? "strong_close" : "em_close"
           token.tag     = isStrong ? "strong" : "em"
           token.nesting = -1
           token.markup  = isStrong ? ch + ch : ch
-          token.content = ""
+          token.content = "".to_slice
 
           if (isStrong)
-            state.tokens[delimiters[i + 1].token].content = ""
-            state.tokens[delimiters[startDelim.end - 1].token].content = ""
+            state.tokens[delimiters[i + 1].token].content = "".to_slice
+            state.tokens[delimiters[startDelim.end - 1].token].content = "".to_slice
             i += 1
           end
           i += 1

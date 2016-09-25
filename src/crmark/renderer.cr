@@ -14,12 +14,12 @@ module MarkdownIt
     # Default Rules
     #------------------------------------------------------------------------------
     def self.code_inline(tokens, idx)
-      return "<code>" + escapeHtml(tokens[idx].content) + "</code>"
+      return "<code>" + escapeHtml(String.new tokens[idx].content) + "</code>"
     end
 
     #------------------------------------------------------------------------------
     def self.code_block(tokens, idx)
-      return "<pre><code>" + escapeHtml(tokens[idx].content) + "</code></pre>\n"
+      return "<pre><code>" + escapeHtml(String.new tokens[idx].content) + "</code></pre>\n"
     end
 
     #------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ module MarkdownIt
 #      if options[:highlight]!!!
 #        highlighted = options[:highlight].call(token.content, langName) || escapeHtml(token.content)
 #      else
-        highlighted = escapeHtml(token.content)
+        highlighted = escapeHtml(String.new token.content)
 #      end
 
       return  "<pre><code" + renderer.renderAttrs(token) + ">" + highlighted + "</code></pre>\n"
@@ -65,15 +65,15 @@ module MarkdownIt
 
     #------------------------------------------------------------------------------
     def self.text(tokens, idx)
-      return escapeHtml(tokens[idx].content)
+      return escapeHtml(String.new tokens[idx].content)
     end
 
     #------------------------------------------------------------------------------
     def self.html_block(tokens, idx)
-      return tokens[idx].content
+      return String.new(tokens[idx].content)
     end
     def self.html_inline(tokens, idx)
-      return tokens[idx].content
+      return String.new(tokens[idx].content)
     end
 
     alias OptionType = NamedTuple(html: Bool, xhtmlOut: Bool, breaks: Bool, langPrefix: String, linkify: Bool, typographer: Bool, quotes: String, highlight: Nil, maxNesting: Int32)

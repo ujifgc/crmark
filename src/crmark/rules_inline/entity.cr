@@ -7,6 +7,7 @@ module MarkdownIt
       
       DIGITAL_RE = /^&#((?:x[a-f0-9]{1,8}|[0-9]{1,8}));/i
       NAMED_RE   = /^&([a-z][a-z0-9]{1,31});/i
+      MAX_ENTITY_SIZE = 64
 
 
       #------------------------------------------------------------------------------
@@ -16,22 +17,22 @@ module MarkdownIt
 
         return false if state.src.charCodeAt(pos) != 0x26    # &
 
+        html_size = [MAX_ENTITY_SIZE, state.src.size - pos].min
+
         if pos + 1 < max
           ch = state.src.charCodeAt(pos + 1)
 
           if ch == 0x23     # '#'
-            match = state.src.slice_to_end(pos).match(DIGITAL_RE)
-            if match
+            if match = String.new(state.src[pos, html_size]).match(DIGITAL_RE)
               if !silent
-                code = match[1][0].downcase == 'x' ? match[1].slice_to_end(1).to_i(16) : match[1].to_i
+                code = match[1][0].downcase == 'x' ? match[1][1..-1].to_i(16) : match[1].to_i
                 state.pending += isValidEntityCode(code) ? fromCodePoint(code) : fromCodePoint(0xFFFD)
               end
               state.pos += match[0].size
               return true
             end
           else
-            match = state.src.slice_to_end(pos).match(NAMED_RE)
-            if match
+            if match = String.new(state.src[pos, html_size]).match(NAMED_RE)
               if HTMLEntities::MAPPINGS[match[1]]?
                 state.pending += HTMLEntities::MAPPINGS[match[1]] if !silent
                 state.pos     += match[0].size

@@ -449,7 +449,8 @@ module MarkdownIt
     # in [[MarkdownIt.parse]].
     #------------------------------------------------------------------------------
     def render(src, env = clean_env)
-      return @renderer.render(parse(src, env), @options, env)
+      buffer = src.to_slice
+      return @renderer.render(parse(buffer, env), @options, env)
     end
 
     #------------------------------------------------------------------------------

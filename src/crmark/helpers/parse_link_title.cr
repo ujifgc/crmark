@@ -24,7 +24,7 @@ module MarkdownIt
         while (pos < max)
           code = str.charCodeAt(pos)
           if (code == marker)
-            return {ok: true, pos: pos+1, lines: lines, str: unescapeAll(str[(start + 1)...pos])}
+            return {ok: true, pos: pos+1, lines: lines, str: unescapeAll(String.new str[(start + 1)...pos])}
           elsif (code == 0x0A)
             lines += 1
           elsif (code == 0x5C && pos + 1 < max) # \

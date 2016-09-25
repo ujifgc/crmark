@@ -21,14 +21,14 @@ module MarkdownIt
 
         if len % 2 != 0
           token         = state.push("text", "", 0)
-          token.content = ch
+          token.content = state.src[start, 1]
           len -= 1
         end
 
         i = 0
         while i < len
           token         = state.push("text", "", 0)
-          token.content = ch + ch
+          token.content = state.src[start, 2]
 
           state.delimiters.push(Delimiter.new(
             marker: marker,
@@ -73,14 +73,14 @@ module MarkdownIt
           token.tag     = "s"
           token.nesting = 1
           token.markup  = "~~"
-          token.content = ""
+          token.content = "".to_slice
 
           token         = state.tokens[endDelim.token]
           token.type    = "s_close"
           token.tag     = "s"
           token.nesting = -1
           token.markup  = "~~"
-          token.content = ""
+          token.content = "".to_slice
 
           if (state.tokens[endDelim.token - 1].type == "text" &&
               state.tokens[endDelim.token - 1].content == "~")

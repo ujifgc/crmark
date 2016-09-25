@@ -7,6 +7,7 @@ module MarkdownIt
     property :content, :markup, :info, :meta, :block, :hidden
 
     @markup : String
+    @content : Bytes
 
     # new Token(type, tag, nesting)
     #
@@ -56,7 +57,7 @@ module MarkdownIt
        # *
        # * In a case of self-closing tag (code, html, fence, etc.),
        # * it has contents of this tag.
-      @content  = ""
+      @content = "".to_slice
 
        # * Token#markup -> String
        # *

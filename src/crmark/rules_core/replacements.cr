@@ -37,7 +37,7 @@ module MarkdownIt
         (inlineTokens.size - 1).downto(0) do |i|
           token = inlineTokens[i]
           if (token.type == "text")
-            token.content = token.content.gsub(SCOPED_ABBR_RE) {|match| self.replaceFn(match, $1)}
+            token.content = (String.new(token.content).gsub(SCOPED_ABBR_RE) {|match| self.replaceFn(match, $1)}).to_slice # !!!
           end
         end
       end
@@ -47,8 +47,9 @@ module MarkdownIt
         (inlineTokens.size - 1).downto(0) do |i|
           token = inlineTokens[i]
           if (token.type == "text")
-            if (RARE_RE =~ token.content)
-              token.content = token.content.
+            strcontent = String.new token.content
+            if RARE_RE.match(strcontent)
+              strcontent = strcontent.
                           gsub(/\+-/, "±").
                           # .., ..., ....... -> …
                           # but ?..... & !..... -> ?.. & !..
@@ -59,6 +60,7 @@ module MarkdownIt
                           # en-dash
                           gsub(/(^|\s)--(\s|$)/m, "\\1\u2013\\2").
                           gsub(/(^|[^-\s])--([^-\s]|$)/m, "\\1\u2013\\2")
+              token.content = strcontent.to_slice
             end
           end
         end
@@ -72,11 +74,11 @@ module MarkdownIt
         (state.tokens.size - 1).downto(0) do |blkIdx|
           next if (state.tokens[blkIdx].type != "inline")
 
-          if (SCOPED_ABBR_RE =~ state.tokens[blkIdx].content)
+          if SCOPED_ABBR_RE.match(String.new state.tokens[blkIdx].content)
             replace_scoped(state.tokens[blkIdx].children)
           end
 
-          if (RARE_RE =~ state.tokens[blkIdx].content)
+          if RARE_RE.match(String.new state.tokens[blkIdx].content)
             replace_rare(state.tokens[blkIdx].children)
           end
 

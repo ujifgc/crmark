@@ -95,7 +95,7 @@ module MarkdownIt
             start = pos + 1
             pos   = parseLinkLabel(state, pos)
             if (pos >= 0)
-              label = state.src[start...pos]
+              label = String.new(state.src[start...pos])
               pos += 1
             else
               pos = labelEnd + 1
@@ -106,7 +106,7 @@ module MarkdownIt
 
           # covers label === '' and label === undefined
           # (collapsed reference link and shortcut reference link respectively)
-          label = state.src[labelStart...labelEnd] if label.empty?
+          label = String.new(state.src[labelStart...labelEnd]) if label.empty?
 
           ref = state.env[:references][normalizeReference(label)]?
           if (!ref)

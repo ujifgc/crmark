@@ -17,8 +17,8 @@ module MarkdownIt
         # Pending string is stored in concat mode, indexed lookups will cause
         # convertion to flat mode.
         if !silent
-          if pmax >= 0 && state.pending.charCodeAt(pmax) == 0x20
-            if pmax >= 1 && state.pending.charCodeAt(pmax - 1) == 0x20
+          if pmax >= 0 && state.pending[pmax].ord == 0x20
+            if pmax >= 1 && state.pending[pmax - 1].ord == 0x20
               state.pending = state.pending.sub(/ +$/, "")
               state.push("hardbreak", "br", 0)
             else
