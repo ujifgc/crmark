@@ -14,7 +14,7 @@ module MarkdownIt
 
       #------------------------------------------------------------------------------
       def self.escapedSplit(str)
-        result       = [] of String
+        result       = [] of Bytes
         pos          = 0
         max          = str.size
         escapes      = 0
@@ -44,10 +44,11 @@ module MarkdownIt
             backTicked = false
             pos = lastBackTick + 1
           end
+          next if pos >= max
           ch   = str.charCodeAt(pos)
         end
 
-        result.push(str.slice_to_end(lastPos))
+        result.push(str[lastPos..-1])
 
         return result
       end
@@ -62,32 +63,40 @@ module MarkdownIt
 
         return false if (state.sCount[nextLine] < state.blkIndent)
 
-        # first character of the second line should be '|' or '-'
+        # first character of the second line should be '|', '-', ':',
+        # and no other characters are allowed but spaces;
+        # basically, this is the equivalent of /^[-:|][-:|\s]*$/ regexp
         pos = state.bMarks[nextLine] + state.tShift[nextLine]
         return false if (pos >= state.eMarks[nextLine])
 
         ch = state.src.charCodeAt(pos)
+        pos += 1
         return false if (ch != 0x7C && ch != 0x2D && ch != 0x3A) # != '|' && '-' && ':'
 
-        lineText = getLine(state, startLine + 1)
-        return false if (/^[-:| ]+$/ =~ lineText).nil?
+        while pos < state.eMarks[nextLine]
+          ch = state.src.charCodeAt(pos)
+          return false if (ch != 0x7C && ch != 0x2D && ch != 0x3A && !ch.space_tab?) # != '|' && '-' && ':'
+          pos += 1
+        end
 
-        rows = lineText.split("|")
-        return false if (rows.size < 2)
+        lineText = getLine(state, startLine + 1)
+
+        columns = String.new(lineText).split("|").map(&.to_slice)
+
         aligns = [] of String
-        (0...rows.size).each do |i|
-          t = rows[i].strip
+        (0...columns.size).each do |i|
+          t = columns[i].strip
           if t.empty?
             # allow empty columns before and after table, but not in between columns
             # e.g. allow ` |---| `, disallow ` ---||--- `
-            if (i == 0 || i == rows.size - 1)
+            if (i == 0 || i == columns.size - 1)
               next
             else
               return false
             end
           end
 
-          return false if (/^:?-+:?$/ =~ t).nil?
+          return false if (String.new(t).match(/^:?-+:?$/)).nil?
           if (t.charCodeAt(t.size - 1) == 0x3A)  # ':'
             aligns.push(t.charCodeAt(0) == 0x3A ? "center" : "right")
           elsif (t.charCodeAt(0) == 0x3A)
@@ -98,9 +107,13 @@ module MarkdownIt
         end
 
         lineText = getLine(state, startLine).strip
-        return false if !lineText.includes?("|")
-        rows = self.escapedSplit(lineText.gsub(/^\||\|$/, ""))
-        return false if (aligns.size != rows.size)
+        return false if !lineText.includes?('|'.ord)
+        columns = self.escapedSplit(String.new(lineText).gsub(/^\||\|$/, "").to_slice)
+
+        # header row will define an amount of columns in the entire table,
+        # and align row shouldn't be smaller than that (the rest of the rows can)
+        columnCount = columns.size
+        return false if columnCount > aligns.size
         return true  if silent
 
         token     = state.push("table_open", "table", 1)
@@ -112,7 +125,7 @@ module MarkdownIt
         token     = state.push("tr_open", "tr", 1)
         token.map = [ startLine, startLine + 1 ]
 
-        (0...rows.size).each do |i|
+        (0...columns.size).each do |i|
           token          = state.push("th_open", "th", 1)
           token.map      = [ startLine, startLine + 1 ]
           unless aligns[i].empty?
@@ -120,7 +133,7 @@ module MarkdownIt
           end
 
           token          = state.push("inline", "", 0)
-          token.content  = rows[i].strip
+          token.content  = columns[i].strip
           token.map      = [ startLine, startLine + 1 ]
           token.children = [] of Token
 
@@ -137,22 +150,21 @@ module MarkdownIt
         while nextLine < endLine
           break if (state.sCount[nextLine] < state.blkIndent)
 
-          lineText = getLine(state, nextLine).strip
-          break if !lineText.includes?("|")
-          rows = self.escapedSplit(lineText.gsub(/^\||\|$/, ""))
-
-          # set number of columns to number of columns in header row
-          rows_length = aligns.size
+          lineText = getLine(state, nextLine)
+          break if !lineText.includes?('|'.ord)
+          # keep spaces at beginning of line to indicate an empty first cell, but
+          # strip trailing whitespace
+          columns = self.escapedSplit(String.new(lineText).gsub(/^\||\|\s*$/, "").to_slice)
 
           token = state.push("tr_open", "tr", 1)
-          (0...rows_length).each do |i|
+          (0...columnCount).each do |i|
             token          = state.push("td_open", "td", 1)
             unless aligns[i].empty?
               token.attrs  = [ [ "style", "text-align:" + aligns[i] ] ]
             end
 
             token          = state.push("inline", "", 0)
-            token.content  = rows[i] ? rows[i].strip : ""
+            token.content  = columns[i]? ? columns[i].strip : "".to_slice
             token.children = [] of Token
 
             token          = state.push("td_close", "td", -1)
