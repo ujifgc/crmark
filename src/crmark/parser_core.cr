@@ -17,7 +17,7 @@ module MarkdownIt
       { "inline",         -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesCore::Inline.inline(state) }            },
 #     { "linkify",        -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesCore::Linkify.linkify(state) }          },
       { "replacements",   -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesCore::Replacements.replace(state) }     },
-#     { "smartquotes",    -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesCore::Smartquotes.smartquotes(state) }  },
+      { "smartquotes",    -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesCore::Smartquotes.smartquotes(state) }  },
     ]
 
 

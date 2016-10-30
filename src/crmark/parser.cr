@@ -7,7 +7,8 @@ require "./parser_state"
 CONFIG = {
   :default    => MarkdownIt::Presets::Default.options,
   :zero       => MarkdownIt::Presets::Zero.options,
-  :commonmark => MarkdownIt::Presets::Commonmark.options
+  :commonmark => MarkdownIt::Presets::Commonmark.options,
+  :markdownit => MarkdownIt::Presets::MarkdownItPreset.options,
 }
 
 #------------------------------------------------------------------------------
