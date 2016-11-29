@@ -20,6 +20,7 @@ module MarkdownIt
         label = ""
         labelStart = state.pos + 1
         labelEnd   = parseLinkLabel(state, state.pos, true)
+        parseReference = true
 
         # parser failed to find ']', so it's not a valid link
         return false if labelEnd < 0
@@ -29,6 +30,9 @@ module MarkdownIt
           #
           # Inline link
           #
+
+          # might have found a valid shortcut link, disable reference parsing
+          parseReference = false
 
           # [link](  <href>  "title"  )
           #        ^^ skipping these spaces
@@ -81,11 +85,13 @@ module MarkdownIt
           end
 
           if (pos >= max || state.src.charCodeAt(pos) != 0x29) # )
-            state.pos = oldPos
-            return false
+            # parsing a valid shortcut link failed, fallback to reference
+            parseReference = true
           end
           pos += 1
-        else
+        end
+
+        if parseReference
           #
           # Link reference
           #
