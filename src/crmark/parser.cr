@@ -8,7 +8,7 @@ CONFIG = {
   :default    => MarkdownIt::Presets::Default.options,
   :zero       => MarkdownIt::Presets::Zero.options,
   :commonmark => MarkdownIt::Presets::Commonmark.options,
-  :markdownit => MarkdownIt::Presets::MarkdownItPreset.options,
+  :markdownit => MarkdownIt::Presets::MarkdownIt.options,
 }
 
 #------------------------------------------------------------------------------
@@ -32,13 +32,30 @@ end
 RECODE_HOSTNAME_FOR = [ "http:", "https:", "mailto:" ]
 
 NORMALIZE_LINK = ->(url : String) do
-  MarkdownIt::MDUrl.encode(url)
+  parsed = MarkdownIt::MDUrl::Url.urlParse(url, true)
+  if parsed.hostname
+    if !parsed.protocol || RECODE_HOSTNAME_FOR.includes?(parsed.protocol)
+      begin
+        parsed.hostname = ::SimpleIDN.to_ascii(parsed.hostname.not_nil!)
+      rescue SimpleIDN::Punycode::Error
+      end
+    end
+  end
+  MarkdownIt::MDUrl::Encode.encode(MarkdownIt::MDUrl::Format.format(parsed))
 end
 
 NORMALIZE_LINK_TEXT = ->(url : String) do
-  url
+  parsed = MarkdownIt::MDUrl::Url.urlParse(url, true)
+  if parsed.hostname
+    if !parsed.protocol || RECODE_HOSTNAME_FOR.includes?(parsed.protocol)
+      begin
+        parsed.hostname = ::SimpleIDN.to_unicode(parsed.hostname.not_nil!)
+      rescue SimpleIDN::Punycode::Error
+      end
+    end
+  end
+  MarkdownIt::MDUrl::Decode.decode(MarkdownIt::MDUrl::Format.format(parsed))
 end
-
 
 #------------------------------------------------------------------------------
 # class MarkdownIt
@@ -212,13 +229,6 @@ module MarkdownIt
       #
       # See [[Renderer]] docs and [source code](https://github.com/markdown-it/markdown-it/blob/master/lib/renderer.js).
       @renderer = Renderer.new
-
-      # MarkdownIt#linkify -> LinkifyIt
-      #
-      # [linkify-it](https://github.com/markdown-it/linkify-it) instance.
-      # Used by [linkify](https://github.com/markdown-it/markdown-it/blob/master/lib/rules_core/linkify.js)
-      # rule.
-#      @linkify = ::Linkify.new
 
       # MarkdownIt#validateLink(url) -> Boolean
       #

@@ -34,19 +34,29 @@ module MarkdownIt
 
       #------------------------------------------------------------------------------
       def self.replace_scoped(inlineTokens)
+        inside_autolink = 0
         (inlineTokens.size - 1).downto(0) do |i|
           token = inlineTokens[i]
-          if (token.type == "text")
-            token.content = (String.new(token.content).gsub(SCOPED_ABBR_RE) {|match| self.replaceFn(match, $1)}).to_slice # !!!
+          if (token.type == "text" && inside_autolink == 0)
+            token.content = (String.new(token.content).gsub(SCOPED_ABBR_RE) { |match| self.replaceFn(match, $1) }).to_slice # !!!
+          end
+
+          if token.type == "link_open" && token.info == "auto"
+            inside_autolink += 1
+          end
+
+          if token.type == "link_close" && token.info == "auto"
+            inside_autolink -= 1
           end
         end
       end
 
       #------------------------------------------------------------------------------
       def self.replace_rare(inlineTokens)
+        inside_autolink = 0
         (inlineTokens.size - 1).downto(0) do |i|
           token = inlineTokens[i]
-          if (token.type == "text")
+          if (token.type == "text" && inside_autolink == 0)
             strcontent = String.new token.content
             if RARE_RE.match(strcontent)
               strcontent = strcontent.
@@ -62,6 +72,14 @@ module MarkdownIt
                           gsub(/(^|[^-\s])--([^-\s]|$)/m, "\\1\u2013\\2")
               token.content = strcontent.to_slice
             end
+          end
+
+          if token.type == "link_open" && token.info == "auto"
+            inside_autolink += 1
+          end
+
+          if token.type == "link_close" && token.info == "auto"
+            inside_autolink -= 1
           end
         end
       end

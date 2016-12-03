@@ -1,7 +1,4 @@
 require "./crmark/common/*"
+require "./crmark/mdurl/*"
 require "./crmark/helpers/*"
 require "./crmark/*"
-
-module MarkdownIt
-  # TODO Put your code here
-end

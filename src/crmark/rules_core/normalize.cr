@@ -10,14 +10,7 @@ module MarkdownIt
 
       #------------------------------------------------------------------------------
       def self.inline(state)
-        # Normalize newlines
-#!!!        str = state.src.gsub(NEWLINES_RE, "\n")
-
-        # Replace NULL characters
-#!!!        str = str.gsub(NULL_RE, "\uFFFD")
-
-#!!!        state.src = str
-        true
+        false
       end
     end
   end

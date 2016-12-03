@@ -53,7 +53,6 @@ module MarkdownIt
         end
 
         return false if pos == state.pos
-
         state.pending += String.new(state.src[state.pos...pos]) if !silent
         state.pos      = pos
         return true

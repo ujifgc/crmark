@@ -37,7 +37,7 @@ module MarkdownIt
             token.info    = "auto"
           end
 
-          state.pos += linkMatch[0].size
+          state.pos += linkMatch[0].bytesize
           return true
         end
 
@@ -60,7 +60,7 @@ module MarkdownIt
             token.info    = "auto"
           end
 
-          state.pos += emailMatch[0].size
+          state.pos += emailMatch[0].bytesize
           return true
         end
 
