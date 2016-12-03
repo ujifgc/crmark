@@ -8,8 +8,8 @@ def benchmark(file)
   puts "Benchmarking #{file}"
   input = File.read(file)
   Benchmark.ips(warmup: 0.1, calculation: 0.3) do |x|
-    x.report("markdown-it") { Parser.render(input) }
-    x.report("stdlib markdown") { Markdown.to_html(input) }
+    x.report("crmark") { Parser.render(input) }
+    x.report("markdown") { Markdown.to_html(input) }
   end
 end
 

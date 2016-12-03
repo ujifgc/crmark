@@ -1,7 +1,5 @@
 require "./spec_helper"
 
-require "spec"
-
 private def assert_render(input, output, file = __FILE__, line = __LINE__)
   it "renders #{input.inspect}", file, line do
     parser = MarkdownIt::Parser.new(:commonmark)
@@ -9,7 +7,7 @@ private def assert_render(input, output, file = __FILE__, line = __LINE__)
   end
 end
 
-describe MarkdownIt do
+describe "CommonMark Spec" do
   spec_file = "#{__DIR__}/commonmark/spec.txt"
   data = File.read(spec_file)
   source = nil
