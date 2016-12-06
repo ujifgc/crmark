@@ -25,13 +25,22 @@ module MarkdownIt
         ch           = str.charCodeAt(pos)
 
         while (pos < max)
-          if (ch == 0x60 && (escapes % 2 == 0))  # `
-            backTicked   = !backTicked
-            lastBackTick = pos
+          if ch == 0x60 # `
+            if backTicked
+              # make \` close code sequence, but not open it
+              # the reason is: `\` is correct code block
+              backTicked = false
+              lastBackTick = pos
+            elsif escapes % 2 == 0
+              backTicked = true
+              lastBackTick = pos
+            end
           elsif (ch == 0x7c && (escapes % 2 == 0) && !backTicked)     # '|'
             result.push(str[lastPos...pos])
             lastPos = pos + 1
-          elsif (ch == 0x5c)   # '\'
+          end
+
+          if (ch == 0x5c)   # '\'
             escapes += 1
           else
             escapes = 0
