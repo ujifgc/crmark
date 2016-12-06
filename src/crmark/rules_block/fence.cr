@@ -28,7 +28,7 @@ module MarkdownIt
         markup = state.src[mem...pos]
         params = state.src[pos...max]
 
-        return false if params.includes?(0x60) # `
+        return false if params.includes?(marker)
 
         # Since start is found, we can report success here in validation mode
         return true if silent
