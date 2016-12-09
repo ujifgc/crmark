@@ -25,8 +25,7 @@ VALIDATE_LINK = ->(url : String) do
   # url should be normalized at this point, and existing entities are decoded
   #
   str = url.strip.downcase
-
-  return !!(BAD_PROTO_RE =~ str) ? (!!(GOOD_DATA_RE =~ str) ? true : false) : true
+  !!(!(BAD_PROTO_RE =~ str) || (GOOD_DATA_RE =~ str))
 end
 
 RECODE_HOSTNAME_FOR = [ "http:", "https:", "mailto:" ]
@@ -91,15 +90,15 @@ module MarkdownIt
   class Parser
     include MarkdownIt::Common::Utils
 
-    property   :inline
-    property   :block
-    property   :core
-    property   :renderer
-    property   :options
-    property   :validateLink
-    property   :normalizeLink
-    property   :normalizeLinkText
-    property   :linkify
+    property :inline
+    property :block
+    property :core
+    property :renderer
+    property :options
+    property :validateLink
+    property :normalizeLink
+    property :normalizeLinkText
+    property :linkify
 
     @validateLink : Proc(String, Bool)
     @normalizeLink : Proc(String, String)

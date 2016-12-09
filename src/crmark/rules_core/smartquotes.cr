@@ -10,9 +10,8 @@ module MarkdownIt
       APOSTROPHE    = "\u2019" # ’
 
 
-      #------------------------------------------------------------------------------
-      def self.replaceAt(str : String, index, ch : String) : String
-        str[0, index] + ch + str[(index + 1)..-1]
+      def self.replaceAt(buf : Bytes, index, ch : String) : Bytes
+        (String.new(buf[0, index]) + ch + String.new(buf[(index + 1)..-1])).to_slice
       end
 
       record Quote,
@@ -41,21 +40,21 @@ module MarkdownIt
 
           next if token.type != "text"
 
-          text = String.new(token.content)
+          text : Bytes = token.content
           pos  = 0
           max  = text.size
+          byteshift = 0
 
           # OUTER loop
           while pos < max
             continue_outer_loop = false
-            t = QUOTE_RE.match(text, pos)
+            t = QUOTE_RE.bytematch(text, pos)
             break if t.nil?
 
             canOpen  = true
             canClose = true
             pos      = t.begin(0).not_nil! + 1
-            isSingle = t[0] == "'"
-
+            isSingle = t[0] == "'".to_slice
 
             # Find previous character,
             # default to space if it's the beginning of the line
@@ -63,7 +62,7 @@ module MarkdownIt
             lastChar = 0x20
 
             if pos - 2 >= 0
-              lastChar = text[pos - 2].ord
+              lastChar = text[pos - 2]
             else
               j = i - 1
               while j >= 0
@@ -84,7 +83,7 @@ module MarkdownIt
             nextChar = 0x20
 
             if pos < max
-              nextChar = text[pos].ord
+              nextChar = text[pos]
             else
               j = i + 1
               while j < tokens.size
@@ -94,7 +93,7 @@ module MarkdownIt
                 end
 
                 nextChar = tokens[j].content.charCodeAt(0)
-                break;
+                break
                 j += 1
               end
             end
@@ -120,7 +119,7 @@ module MarkdownIt
               end
             end
 
-            if (nextChar == 0x22 && t[0] == "\"") # "
+            if (nextChar == 0x22 && t[0] == "\"".to_slice) # "
               if (lastChar >= 0x30 && lastChar <= 0x39)   # >= 0  && <= 9
                 # special case: 1"" - count first quote as an inch
                 canClose = canOpen = false
@@ -136,7 +135,8 @@ module MarkdownIt
             if (!canOpen && !canClose)
               # middle of word
               if (isSingle)
-                token.content = replaceAt(String.new(token.content), t.begin(0).not_nil!, APOSTROPHE).to_slice
+                token.content = replaceAt(token.content, t.begin(0).not_nil! + byteshift, APOSTROPHE)
+                byteshift += APOSTROPHE.bytesize - '"'.bytesize
               end
               next
             end
@@ -161,13 +161,13 @@ module MarkdownIt
                   # replace token.content *before* tokens[item.token].content,
                   # because, if they are pointing at the same token, replaceAt
                   # could mess up indices when quote length != 1
-                  token.content = replaceAt(String.new(token.content), t.begin(0).not_nil!, closeQuote).to_slice
-                  tokens[item.token].content = replaceAt(String.new(tokens[item.token].content), item.pos, openQuote).to_slice
+                  token.content = replaceAt(token.content, t.begin(0).not_nil!, closeQuote)
+                  tokens[item.token].content = replaceAt(tokens[item.token].content, item.pos, openQuote)
 
                   pos += closeQuote.size - 1
                   pos += (openQuote.size - 1) if item.token == i
 
-                  text = String.new(token.content)
+                  text = token.content
                   max  = text.size
 
                   # stack.size = j
@@ -189,7 +189,7 @@ module MarkdownIt
                 level: thisLevel
               ))
             elsif (canClose && isSingle)
-              token.content = replaceAt(String.new(token.content), t.begin(0).not_nil!, APOSTROPHE).to_slice
+              token.content = replaceAt(token.content, t.begin(0).not_nil!, APOSTROPHE)
             end
           end
         end
@@ -201,7 +201,7 @@ module MarkdownIt
 
         blkIdx = state.tokens.size - 1
         while blkIdx >= 0
-          if (state.tokens[blkIdx].type != "inline" || !(QUOTE_TEST_RE.match(String.new(state.tokens[blkIdx].content))))
+          if (state.tokens[blkIdx].type != "inline" || !(QUOTE_TEST_RE.bytematch(state.tokens[blkIdx].content)))
             blkIdx -= 1
             next
           end

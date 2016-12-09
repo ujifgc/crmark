@@ -57,7 +57,7 @@ module MarkdownIt
        # *
        # * In a case of self-closing tag (code, html, fence, etc.),
        # * it has contents of this tag.
-      @content = "".to_slice
+      @content = Bytes.empty
 
        # * Token#markup -> String
        # *
@@ -72,7 +72,7 @@ module MarkdownIt
        # * Token#meta -> Object
        # *
        # * A place for plugins to store an arbitrary data
-      @meta     = String.new
+      @meta     = ""
 
        # * Token#block -> Boolean
        # *

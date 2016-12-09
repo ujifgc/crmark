@@ -8,12 +8,12 @@ module MarkdownIt
       MAILTO_RE  = /^mailto\:/
       
       #------------------------------------------------------------------------------
-      def self.isLinkOpen(str : String)
-        return !(/^<a[>\s]/i =~ str).nil?
+      def self.isLinkOpen(str : Bytes)
+        return !(/^<a[>\s]/i.bytematch str).nil?
       end
 
-      def self.isLinkClose(str : String)
-        return !(/^<\/a\s*>/i =~ str).nil?
+      def self.isLinkClose(str : Bytes)
+        return !(/^<\/a\s*>/i.bytematch str).nil?
       end
 
       #------------------------------------------------------------------------------
@@ -49,10 +49,10 @@ module MarkdownIt
 
             # Skip content of html tag links
             if (currentToken.type == "html_inline")
-              if (isLinkOpen(String.new currentToken.content) && htmlLinkLevel > 0)
+              if isLinkOpen(currentToken.content) && htmlLinkLevel > 0
                 htmlLinkLevel -= 1
               end
-              if (isLinkClose(String.new currentToken.content))
+              if isLinkClose(currentToken.content)
                 htmlLinkLevel += 1
               end
             end
@@ -117,7 +117,7 @@ module MarkdownIt
                 token.info    = "auto"
                 nodes.push(token)
 
-                lastPos = links[ln].lastIndex + (links[ln].text.bytesize - links[ln].text.size)
+                lastPos = links[ln].lastIndex
               end
 
               if (lastPos < text.size)

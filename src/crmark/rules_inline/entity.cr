@@ -23,18 +23,19 @@ module MarkdownIt
           ch = state.src.charCodeAt(pos + 1)
 
           if ch == 0x23     # '#'
-            if match = String.new(state.src[pos, html_size]).match(DIGITAL_RE)
+            if match = DIGITAL_RE.bytematch(state.src[pos, html_size])
               if !silent
-                code = match[1][0].downcase == 'x' ? match[1][1..-1].to_i(16) : match[1].to_i
+                code = match[1][0].chr.downcase == 'x' ? String.new(match[1][1..-1]).to_i(16) : String.new(match[1]).to_i
                 state.pending += isValidEntityCode(code) ? fromCodePoint(code) : fromCodePoint(0xFFFD)
               end
               state.pos += match[0].size
               return true
             end
           else
-            if match = String.new(state.src[pos, html_size]).match(NAMED_RE)
-              if HTMLEntities::MAPPINGS[match[1]]?
-                state.pending += HTMLEntities::MAPPINGS[match[1]] if !silent
+            if match = NAMED_RE.bytematch(state.src[pos, html_size])
+              entity_name = String.new(match[1])
+              if HTMLEntities::MAPPINGS[entity_name]?
+                state.pending += HTMLEntities::MAPPINGS[entity_name] if !silent
                 state.pos     += match[0].size
                 return true
               end

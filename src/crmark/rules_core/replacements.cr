@@ -92,11 +92,11 @@ module MarkdownIt
         (state.tokens.size - 1).downto(0) do |blkIdx|
           next if (state.tokens[blkIdx].type != "inline")
 
-          if SCOPED_ABBR_RE.match(String.new state.tokens[blkIdx].content)
+          if SCOPED_ABBR_RE.bytematch(state.tokens[blkIdx].content)
             replace_scoped(state.tokens[blkIdx].children)
           end
 
-          if RARE_RE.match(String.new state.tokens[blkIdx].content)
+          if RARE_RE.bytematch(state.tokens[blkIdx].content)
             replace_rare(state.tokens[blkIdx].children)
           end
 

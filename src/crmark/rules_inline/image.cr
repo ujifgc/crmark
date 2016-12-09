@@ -26,7 +26,7 @@ module MarkdownIt
         return false if (labelEnd < 0)
 
         pos = labelEnd + 1
-        if (pos < max && state.src.charCodeAt(pos) == 0x28) # (
+        if pos < max && state.src.charCodeAt(pos) == 0x28 # (
           #
           # Inline link
           #
@@ -36,7 +36,7 @@ module MarkdownIt
           pos += 1
           while pos < max
             code = state.src.charCodeAt(pos)
-            break if (code != 0x20 && code != 0x09 && code != 0x0A)
+            break if code != 0x20 && code != 0x09 && code != 0x0A
             pos += 1
           end
           return false if (pos >= max)
@@ -45,9 +45,9 @@ module MarkdownIt
           #          ^^^^^^ parsing link destination
           start = pos
           res   = parseLinkDestination(state.src, pos, state.posMax)
-          if (res[:ok])
+          if res[:ok]
             href = state.md.normalizeLink.call(res[:str])
-            if (state.md.validateLink.call(href))
+            if state.md.validateLink.call(href)
               pos = res[:pos]
             else
               href = ""
@@ -59,14 +59,14 @@ module MarkdownIt
           start = pos
           while pos < max
             code = state.src.charCodeAt(pos)
-            break if (code != 0x20 && code != 0x09 && code != 0x0A)
+            break if code != 0x20 && code != 0x09 && code != 0x0A
             pos += 1
           end
 
           # [link](  <href>  "title"  )
           #                  ^^^^^^^ parsing link title
           res = parseLinkTitle(state.src, pos, state.posMax)
-          if (pos < max && start != pos && res[:ok])
+          if pos < max && start != pos && res[:ok]
             title = res[:str]
             pos   = res[:pos]
 
@@ -74,14 +74,14 @@ module MarkdownIt
             #                         ^^ skipping these spaces
             while pos < max
               code = state.src.charCodeAt(pos);
-              break if (code != 0x20 && code != 0x09 && code != 0x0A)
+              break if code != 0x20 && code != 0x09 && code != 0x0A
               pos += 1
             end
           else
             title = ""
           end
 
-          if (pos >= max || state.src.charCodeAt(pos) != 0x29) # )
+          if pos >= max || state.src.charCodeAt(pos) != 0x29 # )
             state.pos = oldPos
             return false
           end
@@ -92,10 +92,10 @@ module MarkdownIt
           #
           return false if state.env[:references].empty?
 
-          if (pos < max && state.src.charCodeAt(pos) == 0x5B) # [
+          if pos < max && state.src.charCodeAt(pos) == 0x5B # [
             start = pos + 1
             pos   = parseLinkLabel(state, pos)
-            if (pos >= 0)
+            if pos >= 0
               label = String.new(state.src[start...pos])
               pos += 1
             else
@@ -110,7 +110,7 @@ module MarkdownIt
           label = String.new(state.src[labelStart...labelEnd]) if label.empty?
 
           ref = state.env[:references][normalizeReference(label)]?
-          if (!ref)
+          if !ref
             state.pos = oldPos
             return false
           end
@@ -122,7 +122,7 @@ module MarkdownIt
         # We found the end of the link, and know for a fact it's a valid link;
         # so all that's left to do is to call tokenizer.
         #
-        if (!silent)
+        if !silent
           state.md.inline.parse(state.src[labelStart...labelEnd], state.md, state.env, tokens = [] of Token)
 
           token          = state.push("image", "img", 0)

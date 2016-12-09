@@ -36,7 +36,7 @@ module MarkdownIt
         end
 
         html_size = [MAX_HTML_SIZE, state.src.size - pos].min
-        match = String.new(state.src[pos, html_size]).match(HTML_TAG_RE)
+        match = HTML_TAG_RE.bytematch(state.src[pos, html_size])
         return false if !match
 
         if !silent

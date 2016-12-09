@@ -105,7 +105,7 @@ module MarkdownIt
             end
           end
 
-          return false if (String.new(t).match(/^:?-+:?$/)).nil?
+          return false if (t.bytematch(/^:?-+:?$/)).nil?
           if (t.charCodeAt(t.size - 1) == 0x3A)  # ':'
             aligns.push(t.charCodeAt(0) == 0x3A ? "center" : "right")
           elsif (t.charCodeAt(0) == 0x3A)

@@ -25,11 +25,11 @@ module MarkdownIt
 
         return false if state.src.charCodeAt(pos) != 0x3C # <
 
-        lineText = String.new(state.src[pos...max])
+        lineText = state.src[pos...max]
 
         i = 0
         while i < HTML_SEQUENCES.size
-          break if lineText.match(HTML_SEQUENCES[i][0])
+          break if HTML_SEQUENCES[i][0].bytematch(lineText)
           i += 1
         end
 
@@ -42,17 +42,17 @@ module MarkdownIt
 
         # If we are here - we detected HTML block.
         # Let's roll down till block end.
-        unless lineText.match(HTML_SEQUENCES[i][1])
+        unless HTML_SEQUENCES[i][1].bytematch(lineText)
           while nextLine < endLine
             break if state.sCount[nextLine] < state.blkIndent
 
             pos = state.bMarks[nextLine] + state.tShift[nextLine]
             max = state.eMarks[nextLine]
-            lineText = String.new(state.src[pos...max])
+            lineText = state.src[pos...max]
 
-            if lineText.match(HTML_SEQUENCES[i][1])
+            if HTML_SEQUENCES[i][1].bytematch(lineText)
               nextLine += 1 if lineText.size > 0
-              break;
+              break
             end
             nextLine += 1
           end

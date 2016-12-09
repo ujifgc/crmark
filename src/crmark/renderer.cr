@@ -13,17 +13,17 @@ module MarkdownIt
     
     # Default Rules
     #------------------------------------------------------------------------------
-    def self.code_inline(tokens, idx)
-      return "<code>" + escapeHtml(String.new tokens[idx].content) + "</code>"
+    def self.code_inline(io, tokens, idx)
+      io << "<code>" << escapeHtml(tokens[idx].content) << "</code>"
     end
 
     #------------------------------------------------------------------------------
-    def self.code_block(tokens, idx)
-      return "<pre><code>" + escapeHtml(String.new tokens[idx].content) + "</code></pre>\n"
+    def self.code_block(io, tokens, idx)
+      io << "<pre><code>" << escapeHtml(tokens[idx].content) << "</code></pre>\n"
     end
 
     #------------------------------------------------------------------------------
-    def self.fence(tokens, idx, options, env, renderer)
+    def self.fence(io, tokens, idx, options, env, renderer)
       token     = tokens[idx]
       langName  = ""
 
@@ -32,17 +32,13 @@ module MarkdownIt
         token.attrPush([ "class", options[:langPrefix] + langName ]) unless langName.empty?
       end
 
-#      if options[:highlight]!!!
-#        highlighted = options[:highlight].call(token.content, langName) || escapeHtml(token.content)
-#      else
-        highlighted = escapeHtml(String.new token.content)
-#      end
+      highlighted = escapeHtml(token.content)
 
-      return  "<pre><code" + renderer.renderAttrs(token) + ">" + highlighted + "</code></pre>\n"
+      io << "<pre><code" << renderer.renderAttrs(token) << ">" << highlighted << "</code></pre>\n"
     end
 
     #------------------------------------------------------------------------------
-    def self.image(tokens, idx, options, env, renderer)
+    def self.image(io, tokens, idx, options, env, renderer)
       token = tokens[idx]
 
       # "alt" attr MUST be set, even if empty. Because it's mandatory and
@@ -50,52 +46,56 @@ module MarkdownIt
       #
       # Replace content with actual value
 
-      token.attrs[token.attrIndex("alt")][1] = renderer.renderInlineAsText(token.children, options, env)
+      alt_io = IO::Memory.new
+      renderer.renderInlineAsText(alt_io, token.children, options, env)
+      token.attrs[token.attrIndex("alt")][1] = alt_io.to_s
 
-      return renderer.renderToken(tokens, idx, options);
-    end
-
-    #------------------------------------------------------------------------------
-    def self.hardbreak(tokens, idx, options)
-      return options[:xhtmlOut] ? "<br />\n" : "<br>\n"
-    end
-    def self.softbreak(tokens, idx, options)
-      return options[:breaks] ? (options[:xhtmlOut] ? "<br />\n" : "<br>\n") : "\n"
+      renderer.renderToken(io, tokens, idx, options)
     end
 
     #------------------------------------------------------------------------------
-    def self.text(tokens, idx)
-      return escapeHtml(String.new tokens[idx].content)
+    def self.hardbreak(io, options)
+      io << (options[:xhtmlOut] ? "<br />\n" : "<br>\n")
+    end
+
+    def self.softbreak(io, options)
+      io << (options[:breaks] ? (options[:xhtmlOut] ? "<br />\n" : "<br>\n") : "\n")
     end
 
     #------------------------------------------------------------------------------
-    def self.html_block(tokens, idx)
-      return String.new(tokens[idx].content)
+    def self.text(io, tokens, idx)
+      io << escapeHtml(tokens[idx].content)
     end
-    def self.html_inline(tokens, idx)
-      return String.new(tokens[idx].content)
+
+    #------------------------------------------------------------------------------
+    def self.html_block(io, tokens, idx)
+      io << String.new(tokens[idx].content)
+    end
+
+    def self.html_inline(io, tokens, idx)
+      io << String.new(tokens[idx].content)
     end
 
     alias OptionType = NamedTuple(html: Bool, xhtmlOut: Bool, breaks: Bool, langPrefix: String, linkify: Bool, typographer: Bool, quotes: String, highlight: Nil, maxNesting: Int32)
 
-    @rules : Hash(String, Proc(Array(Token), Int32, OptionType, StateEnv, Renderer, String))
+#    @rules : Hash(String, Proc(Array(Token), Int32, OptionType, StateEnv, Renderer, String))
 
     # new Renderer()
     #
     # Creates new [[Renderer]] instance and fill [[Renderer#rules]] with defaults.
     #------------------------------------------------------------------------------
     def initialize
-      @rules = {
-        "code_inline" => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.code_inline(tokens, idx) },
-        "code_block"  => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.code_block(tokens, idx)},
-        "fence"       => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.fence(tokens, idx, options, env, renderer)},
-        "image"       => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.image(tokens, idx, options, env, renderer)},
-        "hardbreak"   => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.hardbreak(tokens, idx, options)},
-        "softbreak"   => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.softbreak(tokens, idx, options)},
-        "text"        => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.text(tokens, idx)},
-        "html_block"  => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.html_block(tokens, idx)},
-        "html_inline" => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.html_inline(tokens, idx)}
-      }
+#      @rules = {
+#        "code_inline" => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.code_inline(tokens, idx) },
+#        "code_block"  => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.code_block(tokens, idx)},
+#        "fence"       => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.fence(tokens, idx, options, env, renderer)},
+#        "image"       => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.image(tokens, idx, options, env, renderer)},
+#        "hardbreak"   => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.hardbreak(tokens, idx, options)},
+#        "softbreak"   => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.softbreak(tokens, idx, options)},
+#        "text"        => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.text(tokens, idx)},
+#        "html_block"  => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.html_block(tokens, idx)},
+#        "html_inline" => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.html_inline(tokens, idx)}
+#      }
       
       # Renderer#rules -> Object
       #
@@ -136,7 +136,7 @@ module MarkdownIt
 
       result = ""
       0.upto(token.attrs.size - 1) do |i|
-        result += " " + escapeHtml(token.attrs[i][0]) + "=\"" + escapeHtml(token.attrs[i][1].to_s) + "\""
+        result += " " + escapeHtml(token.attrs[i][0].to_slice) + "=\"" + escapeHtml(token.attrs[i][1].to_s.to_slice) + "\""
       end
 
       return result
@@ -151,13 +151,12 @@ module MarkdownIt
     # Default token renderer. Can be overriden by custom function
     # in [[Renderer#rules]].
     #------------------------------------------------------------------------------
-    def renderToken(tokens, idx, options, env = nil, renderer = nil)
-      result = ""
+    def renderToken(io, tokens, idx, options, env = nil, renderer = nil)
       needLf = false
       token  = tokens[idx]
 
       # Tight list paragraphs
-      return "" if token.hidden
+      return if token.hidden
 
       # Insert a newline between hidden paragraph and subsequent opening
       # block-level tag.
@@ -167,18 +166,18 @@ module MarkdownIt
       #    >
       #
       if token.block && token.nesting != -1 && idx && tokens[idx - 1].hidden
-        result += "\n"
+        io << "\n"
       end
 
       # Add token name, e.g. `<img`
-      result += (token.nesting == -1 ? "</" : "<") + token.tag
+      io << (token.nesting == -1 ? "</" : "<") << token.tag
 
       # Encode attributes, e.g. `<img src="foo"`
-      result += renderAttrs(token)
+      io << renderAttrs(token)
 
       # Add a slash for self-closing tags, e.g. `<img src="foo" /`
       if token.nesting == 0 && options[:xhtmlOut]
-        result += " /"
+        io << " /"
       end
 
       # Check if we need to add a newline after this tag
@@ -204,9 +203,7 @@ module MarkdownIt
         end
       end
 
-      result += needLf ? ">\n" : ">"
-
-      return result
+      io << (needLf ? ">\n" : ">")
     end
 
 
@@ -217,20 +214,10 @@ module MarkdownIt
     #
     # The same as [[Renderer.render]], but for single token of `inline` type.
     #------------------------------------------------------------------------------
-    def renderInline(tokens, options, env)
-      result  = ""
-      rules   = @rules
+    def renderInline(io, tokens, options, env)
       0.upto(tokens.size - 1) do |i|
-        type = tokens[i].type
-        
-        if rules[type]?
-          result += rules[type].call(tokens, i, options, env, self)
-        else
-          result += renderToken(tokens, i, options)
-        end
+        renderRule(io, tokens[i].type, tokens, i, options, env)
       end
-
-      return result;
     end
 
 
@@ -244,20 +231,40 @@ module MarkdownIt
     # Don't try to use it! Spec requires to show `alt` content with stripped markup,
     # instead of simple escaping.
     #------------------------------------------------------------------------------
-    def renderInlineAsText(tokens, options, env)
-      result = ""
-
+    def renderInlineAsText(io, tokens, options, env)
       0.upto(tokens.size - 1) do |i|
         if tokens[i].type == "text"
-          result += String.new(tokens[i].content)
+          io << String.new(tokens[i].content)
         elsif tokens[i].type == "image"
-          result += renderInlineAsText(tokens[i].children, options, env)
+          renderInlineAsText(io, tokens[i].children, options, env)
         end
       end
-
-      return result
     end
 
+    def renderRule(io, type, tokens, i, options, env)
+      case type
+      when "code_inline"
+        Renderer.code_inline(io, tokens, i)
+      when "code_block"
+        Renderer.code_block(io, tokens, i)
+      when "fence"
+        Renderer.fence(io, tokens, i, options, env, self)
+      when "image"
+        Renderer.image(io, tokens, i, options, env, self)
+      when "hardbreak"
+        Renderer.hardbreak(io, options)
+      when "softbreak"
+        Renderer.softbreak(io, options)
+      when "text"
+        Renderer.text(io, tokens, i)
+      when "html_block"
+        Renderer.html_block(io, tokens, i)
+      when "html_inline"
+        Renderer.html_inline(io, tokens, i)
+      else
+        renderToken(io, tokens, i, options)
+      end
+    end
 
     # Renderer.render(tokens, options, env) -> String
     # - tokens (Array): list on block tokens to renter
@@ -268,22 +275,19 @@ module MarkdownIt
     # this method directly.
     #------------------------------------------------------------------------------
     def render(tokens, options, env)
-      result = ""
-      rules  = @rules
+      io = IO::Memory.new
 
       0.upto(tokens.size - 1) do |i|
         type = tokens[i].type
 
         if type == "inline"
-          result += renderInline(tokens[i].children, options, env)
-        elsif rules[type]?
-          result += rules[tokens[i].type].call(tokens, i, options, env, self)
+          renderInline(io, tokens[i].children, options, env)
         else
-          result += renderToken(tokens, i, options)
+          renderRule(io, type, tokens, i, options, env)
         end
       end
 
-      return result
+      io.to_s
     end
 
   end

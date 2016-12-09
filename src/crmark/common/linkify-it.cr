@@ -123,31 +123,31 @@ module LinkifyRe
 end
 
 module LinkifyIt
-  HTTP_VALIDATOR = ->(text : String, pos : Int32) {
+  HTTP_VALIDATOR = ->(text : Bytes, pos : Int32) {
     tail = text[pos..-1]
-    if RE_HTTP =~ tail
-      tail.match(RE_HTTP).not_nil![0].not_nil!.size
+    if md = RE_HTTP.bytematch(tail)
+      md.not_nil![0].not_nil!.size
     else
       0
     end
   }
 
-  EMAIL_VALIDATOR = ->(text : String, pos : Int32) {
+  EMAIL_VALIDATOR = ->(text : Bytes, pos : Int32) {
     tail = text[pos..-1]
-    if RE_MAILTO =~ tail
-      tail.match(RE_MAILTO).not_nil![0].not_nil!.size
+    if md = RE_MAILTO.bytematch(tail)
+      md.not_nil![0].not_nil!.size
     else
       0
     end
   }
 
-  SLASH_SLASH_VALIDATOR = ->(text : String, pos : Int32) {
+  SLASH_SLASH_VALIDATOR = ->(text : Bytes, pos : Int32) {
     tail = text[pos..-1]
-    if RE_NO_HTTP =~ tail
-      if pos >= 3 && text[pos - 3] == ':'
+    if md = tail.bytematch(RE_NO_HTTP)
+      if pos >= 3 && text[pos - 3] == ':'.ord
         0
       else
-        tail.match(RE_NO_HTTP).not_nil![0].not_nil!.size
+        md.not_nil![0].not_nil!.size
       end
     else
       0
@@ -181,36 +181,36 @@ module LinkifyIt
   RE_NO_HTTP = Regex.new("^" + LinkifyRe::SRC_AUTH + LinkifyRe::SRC_HOST_PORT_STRICT + LinkifyRe::SRC_PATH, Regex::Options::IGNORE_CASE)
 
 
-  def self.pretest(text)
-    !(String.new(text) =~ PRETEST).nil?
+  def self.pretest(buf : Bytes)
+    PRETEST.bytematch(buf)
   end
 
-  def self.test(text : String, offset = 0)
-    if md = SCHEMA_SEARCH.match(text, offset)
+  def self.test(buf : Bytes, offset = 0)
+    if md = SCHEMA_SEARCH.bytematch(buf, offset)
       lastIndex = md.end(0).not_nil!
-      len = testSchemaAt(text, md[2], lastIndex)
+      len = testSchemaAt(buf, String.new(md[2]), lastIndex)
       if len > 0
         start = md.begin(0).not_nil! + md[1].size
         finish = md.begin(0).not_nil! + md[0].size + len
-        url = text[start...finish]
-        return Match.new(md[2], start, finish, url, url, url)
+        url = String.new buf[start...finish]
+        return Match.new(String.new(md[2]), start, finish, url, url, url)
       end
     end
 
-    if HOST_FUZZY_TEST.match(text, offset)
-      if md = LINK_FUZZY.match(text, offset)
+    if HOST_FUZZY_TEST.bytematch(buf, offset)
+      if md = LINK_FUZZY.bytematch(buf, offset)
         start = md.begin(0).not_nil! + md[1].size
         finish = md.begin(0).not_nil! + md[0].size
-        urlText = text[start...finish]
+        urlText = String.new buf[start...finish]
         return Match.new("", start, finish, urlText, "http://" + urlText, urlText)
       end
     end
 
-    if at_pos = text.index('@')
-      if md = EMAIL_FUZZY.match(text, offset)
+    if at_pos = buf.index('@'.ord)
+      if md = EMAIL_FUZZY.bytematch(buf, offset)
         start = md.begin(0).not_nil! + md[1].size
         finish = md.begin(0).not_nil! + md[0].size
-        urlText = text[start...finish]
+        urlText = String.new buf[start...finish]
         return Match.new("mailto:", start, finish, urlText, "mailto:" + urlText, urlText)
       end
     end
@@ -243,12 +243,11 @@ module LinkifyIt
     end
   end
 
-  def self.match(_text) : Array(Match)
-    text = String.new(_text)
+  def self.match(buf : Bytes) : Array(Match)
     result = [] of Match
 
     lastIndex = 0
-    while match = test(text, lastIndex)
+    while match = test(buf, lastIndex)
       result << match
       lastIndex = match.lastIndex
     end
@@ -256,9 +255,9 @@ module LinkifyIt
     result
   end
 
-  def self.testSchemaAt(text, schema, pos : Int32)
+  def self.testSchemaAt(buf : Bytes, schema : String, pos : Int32)
     if SCHEMAS_VALIDATORS[schema]
-      SCHEMAS_VALIDATORS[schema].call(text, pos)
+      SCHEMAS_VALIDATORS[schema].call(buf, pos)
     else
       0
     end
