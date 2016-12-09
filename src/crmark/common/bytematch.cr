@@ -111,10 +111,3 @@ class Regex
     $~ = match
   end
 end
-
-struct Slice
-  def bytematch(regex : Regex, pos = 0) : Regex::ByteMatchData?
-    match = regex.bytematch(self, pos)
-    $~ = match
-  end
-end

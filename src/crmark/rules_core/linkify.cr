@@ -82,7 +82,7 @@ module MarkdownIt
                 # and remove it afterwards.
                 if links[ln].schema.empty?
                   urlText = state.md.normalizeLinkText.call("http://#{urlText}").sub(/^http:\/\//, "")
-                elsif (links[ln].schema == "mailto:" && !(MAILTO_RE =~ urlText))
+                elsif (links[ln].schema == "mailto:" && !(MAILTO_RE.match urlText))
                   urlText = state.md.normalizeLinkText.call("mailto:#{urlText}").sub(MAILTO_RE, "")
                 else
                   urlText = state.md.normalizeLinkText.call(urlText)

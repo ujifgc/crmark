@@ -25,7 +25,7 @@ VALIDATE_LINK = ->(url : String) do
   # url should be normalized at this point, and existing entities are decoded
   #
   str = url.strip.downcase
-  !!(!(BAD_PROTO_RE =~ str) || (GOOD_DATA_RE =~ str))
+  !!(!(BAD_PROTO_RE.match str) || (GOOD_DATA_RE.match str))
 end
 
 RECODE_HOSTNAME_FOR = [ "http:", "https:", "mailto:" ]

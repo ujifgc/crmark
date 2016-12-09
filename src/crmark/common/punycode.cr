@@ -176,7 +176,7 @@ module SimpleIDN
           io << "."
         end
 
-        if part =~ /^xn\-\-/i
+        if /^xn\-\-/i.match(part)
           io << Punycode.decode(part.gsub("xn--", ""))
         else
           io << part

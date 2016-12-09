@@ -143,7 +143,7 @@ module LinkifyIt
 
   SLASH_SLASH_VALIDATOR = ->(text : Bytes, pos : Int32) {
     tail = text[pos..-1]
-    if md = tail.bytematch(RE_NO_HTTP)
+    if md = RE_NO_HTTP.bytematch(tail)
       if pos >= 3 && text[pos - 3] == ':'.ord
         0
       else
@@ -237,7 +237,7 @@ module LinkifyIt
 
       match.url = "http://#{match.url}" if match.schema.empty?
 
-      if (match.schema == "mailto:" && !(/^mailto\:/i =~ match.url))
+      if (match.schema == "mailto:" && !(/^mailto\:/i.match(match.url)))
         match.url = "mailto:" + match.url
       end
     end
