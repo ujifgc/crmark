@@ -25,19 +25,17 @@ module MarkdownIt
     # this method directly.
     #------------------------------------------------------------------------------
     def render
-      io = IO::Memory.new
+      String.build do |io|
+        @tokens.size.times do |i|
+          type = @tokens[i].type
 
-      @tokens.size.times do |i|
-        type = @tokens[i].type
-
-        if type == :inline
-          renderInline(io, @tokens[i].children, @options)
-        else
-          renderRule(io, type, @tokens, i, @options)
+          if type == :inline
+            renderInline(io, @tokens[i].children, @options)
+          else
+            renderRule(io, type, @tokens, i, @options)
+          end
         end
       end
-
-      io.to_s
     end
 
     # Renderer.renderAttrs(token) -> String
