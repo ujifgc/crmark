@@ -93,11 +93,7 @@ module MarkdownIt
     # * Search attribute index by name.
     #------------------------------------------------------------------------------
     def attrIndex(name)
-      return -1 if !@attrs
-
-      attrs = @attrs
-
-      attrs.each_with_index do |attr_, index|
+      @attrs.each_with_index do |attr_, index|
         return index if attr_[0] == name
       end
       return -1
@@ -108,30 +104,8 @@ module MarkdownIt
     # * Add `[ name, value ]` attribute to list. Init attrs if necessary
     #------------------------------------------------------------------------------
     def attrPush(attrData)
-      if @attrs
-        @attrs.push(attrData)
-      else
-        @attrs = [ attrData ]
-      end
+      @attrs.push(attrData)
     end
-    
-    #------------------------------------------------------------------------------
-    def to_json
-      {
-        type: @type,
-        tag: @tag,
-        attrs: @attrs,
-        map: @map,
-        nesting: @nesting,
-        level: @level,
-        children: @children.nil? ? nil : @children.each {|t| t.to_json},
-        content: @content,
-        markup: @markup,
-        info: @info,
-        meta: @meta,
-        block: @block,
-        hidden: @hidden
-      }
-    end
+
   end
 end

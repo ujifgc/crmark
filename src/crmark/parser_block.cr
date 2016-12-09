@@ -11,19 +11,18 @@ module MarkdownIt
     property :ruler
     
     RULES = [
-      # First 2 params - rule name & source. Secondary array - list of rules,
-      # which can be terminated by this one.
-      { "table",        -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Table.table(state, startLine, endLine, silent) },      [ "paragraph", "reference" ] },
-      { "code",         -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Code.code(state, startLine, endLine, silent) }, [] of String },
-      { "fence",        -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Fence.fence(state, startLine, endLine, silent) },      [ "paragraph", "reference", "blockquote", "list" ] },
+      # First 2 params - rule name & source. Secondary array - list of rules, which can be terminated by this one.
+      { "table",        -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Table.table(state, startLine, endLine, silent) },           [ "paragraph", "reference" ] },
+      { "code",         -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Code.code(state, startLine, endLine, silent) },             [] of String },
+      { "fence",        -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Fence.fence(state, startLine, endLine, silent) },           [ "paragraph", "reference", "blockquote", "list" ] },
       { "blockquote",   -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Blockquote.blockquote(state, startLine, endLine, silent) }, [ "paragraph", "reference", "list" ] },
-      { "hr",           -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Hr.hr(state, startLine, endLine, silent) },         [ "paragraph", "reference", "blockquote", "list" ] },
-      { "list",         -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::List.list(state, startLine, endLine, silent) },       [ "paragraph", "reference", "blockquote" ] },
-      { "reference",    -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Reference.reference(state, startLine, endLine, silent) }, [] of String },
-      { "heading",      -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Heading.heading(state, startLine, endLine, silent) },    [ "paragraph", "reference", "blockquote" ] },
-      { "lheading",     -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Lheading.lheading(state, startLine, endLine, silent) }, [] of String },
-      { "html_block",   -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::HtmlBlock.html_block(state, startLine, endLine, silent) }, [ "paragraph", "reference", "blockquote" ] },
-      { "paragraph",    -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Paragraph.paragraph(state, startLine) }, [] of String }
+      { "hr",           -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Hr.hr(state, startLine, endLine, silent) },                 [ "paragraph", "reference", "blockquote", "list" ] },
+      { "list",         -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::List.list(state, startLine, endLine, silent) },             [ "paragraph", "reference", "blockquote" ] },
+      { "reference",    -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Reference.reference(state, startLine, endLine, silent) },   [] of String },
+      { "heading",      -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Heading.heading(state, startLine, endLine, silent) },       [ "paragraph", "reference", "blockquote" ] },
+      { "lheading",     -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Lheading.lheading(state, startLine, endLine, silent) },     [] of String },
+      { "html_block",   -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::HtmlBlock.html_block(state, startLine, endLine, silent) },  [ "paragraph", "reference", "blockquote" ] },
+      { "paragraph",    -> (state : ParserState, startLine : Int32, endLine : Int32, silent : Bool) { RulesBlock::Paragraph.paragraph(state, startLine) },                    [] of String }
     ]
        
 
