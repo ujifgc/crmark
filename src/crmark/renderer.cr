@@ -6,126 +6,39 @@
 #------------------------------------------------------------------------------
 module MarkdownIt
   class Renderer
-    include MarkdownIt::Common::Utils
-    extend  MarkdownIt::Common::Utils
+    include Common::Utils
 
-    property :rules
-    
-    # Default Rules
-    #------------------------------------------------------------------------------
-    def self.code_inline(io, tokens, idx)
-      io << "<code>" << escapeHtml(tokens[idx].content) << "</code>"
-    end
-
-    #------------------------------------------------------------------------------
-    def self.code_block(io, tokens, idx)
-      io << "<pre><code>" << escapeHtml(tokens[idx].content) << "</code></pre>\n"
-    end
-
-    #------------------------------------------------------------------------------
-    def self.fence(io, tokens, idx, options, env, renderer)
-      token     = tokens[idx]
-      langName  = ""
-
-      if !token.info.empty?
-        langName = unescapeAll(token.info).strip.split(/\s+/)[0]
-        token.attrPush([ "class", options[:langPrefix] + langName ]) unless langName.empty?
-      end
-
-      highlighted = escapeHtml(token.content)
-
-      io << "<pre><code" << renderer.renderAttrs(token) << ">" << highlighted << "</code></pre>\n"
-    end
-
-    #------------------------------------------------------------------------------
-    def self.image(io, tokens, idx, options, env, renderer)
-      token = tokens[idx]
-
-      # "alt" attr MUST be set, even if empty. Because it's mandatory and
-      # should be placed on proper position for tests.
-      #
-      # Replace content with actual value
-
-      alt_io = IO::Memory.new
-      renderer.renderInlineAsText(alt_io, token.children, options, env)
-      token.attrs[token.attrIndex("alt")][1] = alt_io.to_s
-
-      renderer.renderToken(io, tokens, idx, options)
-    end
-
-    #------------------------------------------------------------------------------
-    def self.hardbreak(io, options)
-      io << (options[:xhtmlOut] ? "<br />\n" : "<br>\n")
-    end
-
-    def self.softbreak(io, options)
-      io << (options[:breaks] ? (options[:xhtmlOut] ? "<br />\n" : "<br>\n") : "\n")
-    end
-
-    #------------------------------------------------------------------------------
-    def self.text(io, tokens, idx)
-      io << escapeHtml(tokens[idx].content)
-    end
-
-    #------------------------------------------------------------------------------
-    def self.html_block(io, tokens, idx)
-      io << String.new(tokens[idx].content)
-    end
-
-    def self.html_inline(io, tokens, idx)
-      io << String.new(tokens[idx].content)
-    end
-
-    alias OptionType = NamedTuple(html: Bool, xhtmlOut: Bool, breaks: Bool, langPrefix: String, linkify: Bool, typographer: Bool, quotes: String, highlight: Nil, maxNesting: Int32)
-
-#    @rules : Hash(String, Proc(Array(Token), Int32, OptionType, StateEnv, Renderer, String))
+    @tokens : Array(Token)
 
     # new Renderer()
     #
     # Creates new [[Renderer]] instance and fill [[Renderer#rules]] with defaults.
     #------------------------------------------------------------------------------
-    def initialize
-#      @rules = {
-#        "code_inline" => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.code_inline(tokens, idx) },
-#        "code_block"  => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.code_block(tokens, idx)},
-#        "fence"       => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.fence(tokens, idx, options, env, renderer)},
-#        "image"       => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.image(tokens, idx, options, env, renderer)},
-#        "hardbreak"   => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.hardbreak(tokens, idx, options)},
-#        "softbreak"   => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.softbreak(tokens, idx, options)},
-#        "text"        => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.text(tokens, idx)},
-#        "html_block"  => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.html_block(tokens, idx)},
-#        "html_inline" => -> (tokens : Array(Token), idx : Int32, options : OptionType, env : StateEnv, renderer : Renderer) { Renderer.html_inline(tokens, idx)}
-#      }
-      
-      # Renderer#rules -> Object
-      #
-      # Contains render rules for tokens. Can be updated and extended.
-      #
-      # ##### Example
-      #
-      # ```javascript
-      # var md = require("markdown-it")();
-      #
-      # md.renderer.rules.strong_open  = function () { return "<b>"; };
-      # md.renderer.rules.strong_close = function () { return "</b>"; };
-      #
-      # var result = md.renderInline(...);
-      # ```
-      #
-      # Each rule is called as independed static function with fixed signature:
-      #
-      # ```javascript
-      # function my_token_render(tokens, idx, options, env, renderer) {
-      #   // ...
-      #   return renderedHTML;
-      # }
-      # ```
-      #
-      # See [source code](https://github.com/markdown-it/markdown-it/blob/master/lib/renderer.js)
-      # for more details and examples.
-      #@rules = @default_rules.dup
+    def initialize(@tokens, @options = Presets::Default::OPTIONS)
     end
 
+    # Renderer.render(tokens, options) -> String
+    # - tokens (Array): list on block tokens to renter
+    # - options (Object): params of parser instance
+    #
+    # Takes token stream and generates HTML. Probably, you will never need to call
+    # this method directly.
+    #------------------------------------------------------------------------------
+    def render
+      io = IO::Memory.new
+
+      @tokens.size.times do |i|
+        type = @tokens[i].type
+
+        if type == "inline"
+          renderInline(io, @tokens[i].children, @options)
+        else
+          renderRule(io, type, @tokens, i, @options)
+        end
+      end
+
+      io.to_s
+    end
 
     # Renderer.renderAttrs(token) -> String
     #
@@ -135,7 +48,7 @@ module MarkdownIt
       return "" if !token.attrs
 
       result = ""
-      0.upto(token.attrs.size - 1) do |i|
+      token.attrs.size.times do |i|
         result += " " + escapeHtml(token.attrs[i][0].to_slice) + "=\"" + escapeHtml(token.attrs[i][1].to_s.to_slice) + "\""
       end
 
@@ -151,7 +64,7 @@ module MarkdownIt
     # Default token renderer. Can be overriden by custom function
     # in [[Renderer#rules]].
     #------------------------------------------------------------------------------
-    def renderToken(io, tokens, idx, options, env = nil, renderer = nil)
+    def renderToken(io, tokens, idx, options)
       needLf = false
       token  = tokens[idx]
 
@@ -207,88 +120,123 @@ module MarkdownIt
     end
 
 
-    # Renderer.renderInline(tokens, options, env) -> String
+    # Renderer.renderInline(tokens, options) -> String
     # - tokens (Array): list on block tokens to renter
     # - options (Object): params of parser instance
-    # - env (Object): additional data from parsed input (references, for example)
     #
     # The same as [[Renderer.render]], but for single token of `inline` type.
     #------------------------------------------------------------------------------
-    def renderInline(io, tokens, options, env)
-      0.upto(tokens.size - 1) do |i|
-        renderRule(io, tokens[i].type, tokens, i, options, env)
+    def renderInline(io, tokens, options)
+      tokens.size.times do |i|
+        renderRule(io, tokens[i].type, tokens, i, options)
       end
     end
 
 
     # internal
-    # Renderer.renderInlineAsText(tokens, options, env) -> String
+    # Renderer.renderInlineAsText(tokens, options) -> String
     # - tokens (Array): list on block tokens to renter
     # - options (Object): params of parser instance
-    # - env (Object): additional data from parsed input (references, for example)
     #
     # Special kludge for image `alt` attributes to conform CommonMark spec.
     # Don't try to use it! Spec requires to show `alt` content with stripped markup,
     # instead of simple escaping.
     #------------------------------------------------------------------------------
-    def renderInlineAsText(io, tokens, options, env)
-      0.upto(tokens.size - 1) do |i|
+    def renderInlineAsText(io, tokens, options)
+      tokens.size.times do |i|
         if tokens[i].type == "text"
-          io << String.new(tokens[i].content)
+          io.write tokens[i].content
         elsif tokens[i].type == "image"
-          renderInlineAsText(io, tokens[i].children, options, env)
+          renderInlineAsText(io, tokens[i].children, options)
         end
       end
     end
 
-    def renderRule(io, type, tokens, i, options, env)
+    # Default Rules
+    #------------------------------------------------------------------------------
+    def code_inline(io, token)
+      io << "<code>" << escapeHtml(token.content) << "</code>"
+    end
+
+    #------------------------------------------------------------------------------
+    def code_block(io, token)
+      io << "<pre><code>" << escapeHtml(token.content) << "</code></pre>\n"
+    end
+
+    #------------------------------------------------------------------------------
+    def fence(io, token, options)
+      langName  = ""
+
+      if !token.info.empty?
+        langName = unescapeAll(token.info).strip.split(/\s+/)[0]
+        token.attrPush([ "class", options[:langPrefix] + langName ]) unless langName.empty?
+      end
+
+      io << "<pre><code" << renderAttrs(token) << ">" << escapeHtml(token.content) << "</code></pre>\n"
+    end
+
+    #------------------------------------------------------------------------------
+    def image(io, tokens, idx, options)
+      token = tokens[idx]
+
+      # "alt" attr MUST be set, even if empty. Because it's mandatory and
+      # should be placed on proper position for tests.
+      #
+      # Replace content with actual value
+
+      alt_io = IO::Memory.new
+      renderInlineAsText(alt_io, token.children, options)
+      token.attrs[token.attrIndex("alt")][1] = alt_io.to_s
+
+      renderToken(io, tokens, idx, options)
+    end
+
+    #------------------------------------------------------------------------------
+    def hardbreak(io, options)
+      io << (options[:xhtmlOut] ? "<br />\n" : "<br>\n")
+    end
+
+    def softbreak(io, options)
+      io << (options[:breaks] ? (options[:xhtmlOut] ? "<br />\n" : "<br>\n") : "\n")
+    end
+
+    #------------------------------------------------------------------------------
+    def text(io, token)
+      io << escapeHtml(token.content)
+    end
+
+    #------------------------------------------------------------------------------
+    def html_block(io, token)
+      io.write token.content
+    end
+
+    def html_inline(io, token)
+      io.write token.content
+    end
+
+    def renderRule(io, type, tokens, i, options)
       case type
       when "code_inline"
-        Renderer.code_inline(io, tokens, i)
+        code_inline(io, tokens[i])
       when "code_block"
-        Renderer.code_block(io, tokens, i)
+        code_block(io, tokens[i])
       when "fence"
-        Renderer.fence(io, tokens, i, options, env, self)
+        fence(io, tokens[i], options)
       when "image"
-        Renderer.image(io, tokens, i, options, env, self)
+        image(io, tokens, i, options)
       when "hardbreak"
-        Renderer.hardbreak(io, options)
+        hardbreak(io, options)
       when "softbreak"
-        Renderer.softbreak(io, options)
+        softbreak(io, options)
       when "text"
-        Renderer.text(io, tokens, i)
+        text(io, tokens[i])
       when "html_block"
-        Renderer.html_block(io, tokens, i)
+        html_block(io, tokens[i])
       when "html_inline"
-        Renderer.html_inline(io, tokens, i)
+        html_inline(io, tokens[i])
       else
         renderToken(io, tokens, i, options)
       end
     end
-
-    # Renderer.render(tokens, options, env) -> String
-    # - tokens (Array): list on block tokens to renter
-    # - options (Object): params of parser instance
-    # - env (Object): additional data from parsed input (references, for example)
-    #
-    # Takes token stream and generates HTML. Probably, you will never need to call
-    # this method directly.
-    #------------------------------------------------------------------------------
-    def render(tokens, options, env)
-      io = IO::Memory.new
-
-      0.upto(tokens.size - 1) do |i|
-        type = tokens[i].type
-
-        if type == "inline"
-          renderInline(io, tokens[i].children, options, env)
-        else
-          renderRule(io, type, tokens, i, options, env)
-        end
-      end
-
-      io.to_s
-    end
-
   end
 end
