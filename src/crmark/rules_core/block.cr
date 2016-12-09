@@ -5,7 +5,7 @@ module MarkdownIt
       #------------------------------------------------------------------------------
       def self.block(state)
         if state.inlineMode
-          token          = Token.new("inline", "", 0)
+          token          = Token.new(:inline, "", 0)
           token.content  = state.src
           token.map      = [ 0, 1 ]
           token.children = [] of Token

@@ -32,7 +32,7 @@ module MarkdownIt
 
           if (matchEnd - matchStart == marker.size)
             if (!silent)
-              token         = state.push("code_inline", "code", 0)
+              token         = state.push(:code_inline, "code", 0)
               token.markup  = String.new(marker)
               token.content = String.new(state.src[pos...matchStart]).gsub(/[ \n]+/, " ").strip.to_slice #!!!
             end

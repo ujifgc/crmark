@@ -71,16 +71,16 @@ module MarkdownIt
 
         state.line = nextLine + 1
 
-        token          = state.push("heading_open", "h" + level.to_s, 1)
+        token          = state.push(:heading_open, "h" + level.to_s, 1)
         token.markup   = marker.chr.to_s
         token.map      = [ startLine, state.line ]
 
-        token          = state.push("inline", "", 0);
+        token          = state.push(:inline, "", 0);
         token.content  = content
         token.map      = [ startLine, state.line - 1 ]
         token.children = [] of Token
 
-        token          = state.push("heading_close", "h" + level.to_s, -1)
+        token          = state.push(:heading_close, "h" + level.to_s, -1)
         token.markup   = marker.chr.to_s
 
         state.parentType = oldParentType

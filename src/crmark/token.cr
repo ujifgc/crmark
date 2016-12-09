@@ -13,7 +13,7 @@ module MarkdownIt
     #
     # Create new token and fill passed properties.
     #------------------------------------------------------------------------------
-    def initialize(type : String, tag : String, nesting : Int32)
+    def initialize(type : Symbol, tag : String, nesting : Int32)
       #  * Token#type -> String
       #  *
       #  * Type of the token (string, e.g. "paragraph_open")

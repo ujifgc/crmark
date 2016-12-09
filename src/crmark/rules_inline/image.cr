@@ -125,7 +125,7 @@ module MarkdownIt
         if !silent
           state.md.inline.parse(state.src[labelStart...labelEnd], state.md, state.env, tokens = [] of Token)
 
-          token          = state.push("image", "img", 0)
+          token          = state.push(:image, "img", 0)
           token.attrs    = attrs = [ [ "src", href ], [ "alt", "" ] ]
           token.children = tokens
           unless (title.nil? || title.empty?)

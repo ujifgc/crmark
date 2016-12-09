@@ -37,15 +37,15 @@ module MarkdownIt
         inside_autolink = 0
         (inlineTokens.size - 1).downto(0) do |i|
           token = inlineTokens[i]
-          if (token.type == "text" && inside_autolink == 0)
+          if (token.type == :text && inside_autolink == 0)
             token.content = (String.new(token.content).gsub(SCOPED_ABBR_RE) { |match| self.replaceFn(match, $1) }).to_slice # !!!
           end
 
-          if token.type == "link_open" && token.info == "auto"
+          if token.type == :link_open && token.info == "auto"
             inside_autolink += 1
           end
 
-          if token.type == "link_close" && token.info == "auto"
+          if token.type == :link_close && token.info == "auto"
             inside_autolink -= 1
           end
         end
@@ -56,7 +56,7 @@ module MarkdownIt
         inside_autolink = 0
         (inlineTokens.size - 1).downto(0) do |i|
           token = inlineTokens[i]
-          if (token.type == "text" && inside_autolink == 0)
+          if (token.type == :text && inside_autolink == 0)
             strcontent = String.new token.content
             if RARE_RE.match(strcontent)
               strcontent = strcontent.
@@ -74,11 +74,11 @@ module MarkdownIt
             end
           end
 
-          if token.type == "link_open" && token.info == "auto"
+          if token.type == :link_open && token.info == "auto"
             inside_autolink += 1
           end
 
-          if token.type == "link_close" && token.info == "auto"
+          if token.type == :link_close && token.info == "auto"
             inside_autolink -= 1
           end
         end
@@ -90,7 +90,7 @@ module MarkdownIt
         return false if (!state.md.options[:typographer])
 
         (state.tokens.size - 1).downto(0) do |blkIdx|
-          next if (state.tokens[blkIdx].type != "inline")
+          next if (state.tokens[blkIdx].type != :inline)
 
           if SCOPED_ABBR_RE.bytematch(state.tokens[blkIdx].content)
             replace_scoped(state.tokens[blkIdx].children)

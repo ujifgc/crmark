@@ -10,7 +10,7 @@ module MarkdownIt
       # Flush pending text
       #------------------------------------------------------------------------------
       def pushPending
-        token         = Token.new("text", "", 0)
+        token         = Token.new(:text, "", 0)
         token.content = @pending.to_slice
         token.level   = @pendingLevel
         @tokens.push(token)
@@ -21,7 +21,7 @@ module MarkdownIt
       # Push new token to "stream".
       # If pending text exists - flush it as text token
       #------------------------------------------------------------------------------
-      def push(type, tag, nesting)
+      def push(type : Symbol, tag, nesting)
         pushPending unless @pending.empty?
 
         token       = Token.new(type, tag, nesting);

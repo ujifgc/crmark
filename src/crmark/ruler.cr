@@ -186,7 +186,7 @@ module MarkdownIt
     # * ```javascript
     # * var md = require("markdown-it")();
     # *
-    # * md.inline.ruler.after("text", "my_rule", function replace(state) {
+    # * md.inline.ruler.after(:text, "my_rule", function replace(state) {
     # *   //...
     # * });
     # * ```

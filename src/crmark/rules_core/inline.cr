@@ -9,7 +9,7 @@ module MarkdownIt
         # Parse inlines
         0.upto(tokens.size - 1) do |i|
           tok = tokens[i]
-          if tok.type == "inline"
+          if tok.type == :inline
             state.md.inline.parse(tok.content, state.md, state.env, tok.children)
           end
         end

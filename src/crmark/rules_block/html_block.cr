@@ -60,7 +60,7 @@ module MarkdownIt
 
         state.line = nextLine
 
-        token         = state.push("html_block", "", 0)
+        token         = state.push(:html_block, "", 0)
         token.map     = [ startLine, nextLine ]
         token.content = state.getLines(startLine, nextLine, state.blkIndent, true)
 

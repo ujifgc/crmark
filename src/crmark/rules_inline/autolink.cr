@@ -24,15 +24,15 @@ module MarkdownIt
           return false if !state.md.validateLink.call(fullUrl)
 
           if (!silent)
-            token         = state.push("link_open", "a", 1)
+            token         = state.push(:link_open, "a", 1)
             token.attrs   = [ [ "href", fullUrl ] ]
             token.markup  = "autolink"
             token.info    = "auto"
 
-            token         = state.push("text", "", 0)
+            token         = state.push(:text, "", 0)
             token.content = state.md.normalizeLinkText.call(url).to_slice
 
-            token         = state.push("link_close", "a", -1)
+            token         = state.push(:link_close, "a", -1)
             token.markup  = "autolink"
             token.info    = "auto"
           end
@@ -47,15 +47,15 @@ module MarkdownIt
           return false if !state.md.validateLink.call(fullUrl)
 
           if (!silent)
-            token         = state.push("link_open", "a", 1)
+            token         = state.push(:link_open, "a", 1)
             token.attrs   = [ [ "href", fullUrl ] ]
             token.markup  = "autolink"
             token.info    = "auto"
 
-            token         = state.push("text", "", 0)
+            token         = state.push(:text, "", 0)
             token.content = state.md.normalizeLinkText.call(url).to_slice
 
-            token         = state.push("link_close", "a", -1)
+            token         = state.push(:link_close, "a", -1)
             token.markup  = "autolink"
             token.info    = "auto"
           end

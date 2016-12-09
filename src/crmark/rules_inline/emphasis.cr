@@ -17,7 +17,7 @@ module MarkdownIt
 
         i = 0
         while i < scanned.size
-          token         = state.push("text", "", 0);
+          token         = state.push(:text, "", 0);
           token.content = state.src[start, 1]
 
           state.delimiters.push(Delimiter.new(
@@ -100,14 +100,14 @@ module MarkdownIt
           ch = startDelim.marker.to_s
 
           token         = state.tokens[startDelim.token]
-          token.type    = isStrong ? "strong_open" : "em_open"
+          token.type    = isStrong ? :strong_open : :em_open
           token.tag     = isStrong ? "strong" : "em"
           token.nesting = 1
           token.markup  = isStrong ? ch + ch : ch
           token.content = "".to_slice
 
           token         = state.tokens[endDelim.token]
-          token.type    = isStrong ? "strong_close" : "em_close"
+          token.type    = isStrong ? :strong_close : :em_close
           token.tag     = isStrong ? "strong" : "em"
           token.nesting = -1
           token.markup  = isStrong ? ch + ch : ch

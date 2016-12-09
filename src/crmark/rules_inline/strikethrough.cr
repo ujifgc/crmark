@@ -20,14 +20,14 @@ module MarkdownIt
         return false if len < 2
 
         if len % 2 != 0
-          token         = state.push("text", "", 0)
+          token         = state.push(:text, "", 0)
           token.content = state.src[start, 1]
           len -= 1
         end
 
         i = 0
         while i < len
-          token         = state.push("text", "", 0)
+          token         = state.push(:text, "", 0)
           token.content = state.src[start, 2]
 
           state.delimiters.push(Delimiter.new(
@@ -69,20 +69,20 @@ module MarkdownIt
           endDelim = delimiters[startDelim.end]
 
           token         = state.tokens[startDelim.token]
-          token.type    = "s_open"
+          token.type    = :s_open
           token.tag     = "s"
           token.nesting = 1
           token.markup  = "~~"
           token.content = "".to_slice
 
           token         = state.tokens[endDelim.token]
-          token.type    = "s_close"
+          token.type    = :s_close
           token.tag     = "s"
           token.nesting = -1
           token.markup  = "~~"
           token.content = "".to_slice
 
-          if (state.tokens[endDelim.token - 1].type == "text" &&
+          if (state.tokens[endDelim.token - 1].type == :text &&
               state.tokens[endDelim.token - 1].content[0] == '~'.ord)
 
             loneMarkers.push(endDelim.token - 1)
@@ -100,7 +100,7 @@ module MarkdownIt
           i = loneMarkers.pop
           j = i + 1
 
-          while (j < state.tokens.size && state.tokens[j].type == "s_close")
+          while (j < state.tokens.size && state.tokens[j].type == :s_close)
             j += 1
           end
 

@@ -38,7 +38,7 @@ module MarkdownIt
           # stack.size = j + 1
           stack = (j < stack.size ? stack[0...(j + 1)] : stack.fill(Quote.new(-1, 0, true, 0), stack.size...(j+1)))
 
-          next if token.type != "text"
+          next if token.type != :text
 
           text : Bytes = token.content
           pos  = 0
@@ -66,7 +66,7 @@ module MarkdownIt
             else
               j = i - 1
               while j >= 0
-                if tokens[j].type != "text"
+                if tokens[j].type != :text
                   j -= 1
                   next
                 end
@@ -87,7 +87,7 @@ module MarkdownIt
             else
               j = i + 1
               while j < tokens.size
-                if tokens[j].type != "text"
+                if tokens[j].type != :text
                   j += 1
                   next
                 end
@@ -201,7 +201,7 @@ module MarkdownIt
 
         blkIdx = state.tokens.size - 1
         while blkIdx >= 0
-          if (state.tokens[blkIdx].type != "inline" || !(QUOTE_TEST_RE.bytematch(state.tokens[blkIdx].content)))
+          if (state.tokens[blkIdx].type != :inline || !(QUOTE_TEST_RE.bytematch(state.tokens[blkIdx].content)))
             blkIdx -= 1
             next
           end

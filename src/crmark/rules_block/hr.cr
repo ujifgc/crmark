@@ -33,7 +33,7 @@ module MarkdownIt
 
         state.line = startLine + 1
 
-        token        = state.push("hr", "hr", 0)
+        token        = state.push(:hr, "hr", 0)
         token.map    = [ startLine, state.line ]
         token.markup = marker.chr.to_s * cnt
 

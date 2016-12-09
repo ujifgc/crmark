@@ -20,14 +20,14 @@ module MarkdownIt
           if pmax >= 0 && state.pending[pmax].ord == 0x20
             if pmax >= 1 && state.pending[pmax - 1].ord == 0x20
               state.pending = state.pending.sub(/ +$/, "")
-              state.push("hardbreak", "br", 0)
+              state.push(:hardbreak, "br", 0)
             else
               state.pending = state.pending[0...-1]
-              state.push("softbreak", "br", 0)
+              state.push(:softbreak, "br", 0)
             end
 
           else
-            state.push("softbreak", "br", 0)
+            state.push(:softbreak, "br", 0)
           end
         end
 

@@ -85,7 +85,7 @@ module MarkdownIt
         i = idx + 2
         l = state.tokens.size - 2
         while i < l
-          if state.tokens[i].level == level && state.tokens[i].type == "paragraph_open"
+          if state.tokens[i].level == level && state.tokens[i].type == :paragraph_open
             state.tokens[i + 2].hidden = true
             state.tokens[i].hidden     = true
             i += 2
@@ -145,12 +145,12 @@ module MarkdownIt
         listTokIdx = state.tokens.size
 
         if (isOrdered)
-          token       = state.push("ordered_list_open", "ol", 1)
+          token       = state.push(:ordered_list_open, "ol", 1)
           if markerValue != 1
             token.attrs = [ [ "start", markerValue.to_s ] ]
           end
         else
-          token       = state.push("bullet_list_open", "ul", 1)
+          token       = state.push(:bullet_list_open, "ul", 1)
         end
 
         token.map    = listLines = [ startLine, 0 ]
@@ -207,7 +207,7 @@ module MarkdownIt
           indent = initial + indentAfterMarker
 
           # Run subparser & write tokens
-          token        = state.push("list_item_open", "li", 1)
+          token        = state.push(:list_item_open, "li", 1)
           token.markup = markerCharCode.chr.to_s
           token.map    = itemLines = [ startLine, 0 ]
 
@@ -247,7 +247,7 @@ module MarkdownIt
           state.sCount[startLine] = oldLIndent
           state.tight             = oldTight
 
-          token                   = state.push("list_item_close", "li", -1)
+          token                   = state.push(:list_item_close, "li", -1)
           token.markup            = markerCharCode.chr.to_s
 
           nextLine                = startLine = state.line
@@ -285,9 +285,9 @@ module MarkdownIt
 
         # Finilize list
         if (isOrdered)
-          token = state.push("ordered_list_close", "ol", -1)
+          token = state.push(:ordered_list_close, "ol", -1)
         else
-          token = state.push("bullet_list_close", "ul", -1)
+          token = state.push(:bullet_list_close, "ul", -1)
         end
         token.markup = markerCharCode.chr.to_s
 

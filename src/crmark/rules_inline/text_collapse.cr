@@ -16,7 +16,7 @@ module MarkdownIt
           level += tokens[curr].nesting
           tokens[curr].level = level
 
-          if tokens[curr].type == "text" && (curr + 1 < max) && tokens[curr + 1].type == "text"
+          if tokens[curr].type == :text && (curr + 1 < max) && tokens[curr + 1].type == :text
             # collapse two adjacent text nodes
             tokens[curr + 1].content = (String.new(tokens[curr].content) + String.new(tokens[curr + 1].content)).to_slice # !!!
           else

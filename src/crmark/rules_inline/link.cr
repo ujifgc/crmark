@@ -131,7 +131,7 @@ module MarkdownIt
           state.pos    = labelStart
           state.posMax = labelEnd
 
-          token        = state.push("link_open", "a", 1)
+          token        = state.push(:link_open, "a", 1)
           token.attrs  = attrs = [ [ "href", href ] ]
           unless title.nil? || title.empty?
             attrs.push([ "title", title ])
@@ -139,7 +139,7 @@ module MarkdownIt
 
           state.md.inline.tokenize(state)
 
-          token        = state.push("link_close", "a", -1)
+          token        = state.push(:link_close, "a", -1)
         end
 
         state.pos     = pos

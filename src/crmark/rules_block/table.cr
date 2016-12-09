@@ -125,34 +125,34 @@ module MarkdownIt
         return false if columnCount > aligns.size
         return true  if silent
 
-        token     = state.push("table_open", "table", 1)
+        token     = state.push(:table_open, "table", 1)
         token.map = tableLines = [ startLine, 0 ]
 
-        token     = state.push("thead_open", "thead", 1)
+        token     = state.push(:thead_open, "thead", 1)
         token.map = [ startLine, startLine + 1 ]
 
-        token     = state.push("tr_open", "tr", 1)
+        token     = state.push(:tr_open, "tr", 1)
         token.map = [ startLine, startLine + 1 ]
 
         (0...columns.size).each do |i|
-          token          = state.push("th_open", "th", 1)
+          token          = state.push(:th_open, "th", 1)
           token.map      = [ startLine, startLine + 1 ]
           unless aligns[i].empty?
             token.attrs  = [ [ "style", "text-align:" + aligns[i] ] ]
           end
 
-          token          = state.push("inline", "", 0)
+          token          = state.push(:inline, "", 0)
           token.content  = columns[i].strip
           token.map      = [ startLine, startLine + 1 ]
           token.children = [] of Token
 
-          token          = state.push("th_close", "th", -1)
+          token          = state.push(:th_close, "th", -1)
         end
 
-        token     = state.push("tr_close", "tr", -1)
-        token     = state.push("thead_close", "thead", -1)
+        token     = state.push(:tr_close, "tr", -1)
+        token     = state.push(:thead_close, "thead", -1)
 
-        token     = state.push("tbody_open", "tbody", 1)
+        token     = state.push(:tbody_open, "tbody", 1)
         token.map = tbodyLines = [ startLine + 2, 0 ]
 
         nextLine = startLine + 2
@@ -165,24 +165,24 @@ module MarkdownIt
           # strip trailing whitespace
           columns = self.escapedSplit(String.new(lineText).gsub(/^\||\|\s*$/, "").to_slice)
 
-          token = state.push("tr_open", "tr", 1)
+          token = state.push(:tr_open, "tr", 1)
           (0...columnCount).each do |i|
-            token          = state.push("td_open", "td", 1)
+            token          = state.push(:td_open, "td", 1)
             unless aligns[i].empty?
               token.attrs  = [ [ "style", "text-align:" + aligns[i] ] ]
             end
 
-            token          = state.push("inline", "", 0)
+            token          = state.push(:inline, "", 0)
             token.content  = columns[i]? ? columns[i].strip : "".to_slice
             token.children = [] of Token
 
-            token          = state.push("td_close", "td", -1)
+            token          = state.push(:td_close, "td", -1)
           end
-          token = state.push("tr_close", "tr", -1)
+          token = state.push(:tr_close, "tr", -1)
           nextLine += 1
         end
-        token = state.push("tbody_close", "tbody", -1)
-        token = state.push("table_close", "table", -1)
+        token = state.push(:tbody_close, "tbody", -1)
+        token = state.push(:table_close, "table", -1)
 
         tableLines[1] = tbodyLines[1] = nextLine
         state.line = nextLine

@@ -37,16 +37,16 @@ module MarkdownIt
 
         state.line = startLine + 1
 
-        token          = state.push("heading_open", "h#{level.to_s}", 1)
+        token          = state.push(:heading_open, "h#{level.to_s}", 1)
         token.markup   = "########"[0...level]
         token.map      = [ startLine, state.line ]
 
-        token          = state.push("inline", "", 0)
+        token          = state.push(:inline, "", 0)
         token.content  = state.src[pos...max].strip
         token.map      = [ startLine, state.line ]
         token.children = [] of Token
 
-        token        = state.push("heading_close", "h#{level.to_s}", -1)
+        token        = state.push(:heading_close, "h#{level.to_s}", -1)
         token.markup = "########"[0...level]
 
         return true

@@ -80,7 +80,7 @@ module MarkdownIt
         len           = state.sCount[startLine]
         state.line    = nextLine + (haveEndMarker ? 1 : 0)
 
-        token         = state.push("fence", "code", 0)
+        token         = state.push(:fence, "code", 0)
         token.info    = String.new(params)
         token.content = state.getLines(startLine + 1, nextLine, len, true)
         token.markup  = String.new(markup)

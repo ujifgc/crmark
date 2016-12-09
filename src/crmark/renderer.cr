@@ -30,7 +30,7 @@ module MarkdownIt
       @tokens.size.times do |i|
         type = @tokens[i].type
 
-        if type == "inline"
+        if type == :inline
           renderInline(io, @tokens[i].children, @options)
         else
           renderRule(io, type, @tokens, i, @options)
@@ -101,7 +101,7 @@ module MarkdownIt
           if idx + 1 < tokens.size
             nextToken = tokens[idx + 1]
 
-            if nextToken.type == "inline" || nextToken.hidden
+            if nextToken.type == :inline || nextToken.hidden
               # Block-level tag containing an inline tag.
               #
               needLf = false
@@ -144,9 +144,9 @@ module MarkdownIt
     #------------------------------------------------------------------------------
     def renderInlineAsText(io, tokens, options)
       tokens.size.times do |i|
-        if tokens[i].type == "text"
+        if tokens[i].type == :text
           io.write tokens[i].content
-        elsif tokens[i].type == "image"
+        elsif tokens[i].type == :image
           renderInlineAsText(io, tokens[i].children, options)
         end
       end
@@ -216,23 +216,23 @@ module MarkdownIt
 
     def renderRule(io, type, tokens, i, options)
       case type
-      when "code_inline"
+      when :code_inline
         code_inline(io, tokens[i])
-      when "code_block"
+      when :code_block
         code_block(io, tokens[i])
-      when "fence"
+      when :fence
         fence(io, tokens[i], options)
-      when "image"
+      when :image
         image(io, tokens, i, options)
-      when "hardbreak"
+      when :hardbreak
         hardbreak(io, options)
-      when "softbreak"
+      when :softbreak
         softbreak(io, options)
-      when "text"
+      when :text
         text(io, tokens[i])
-      when "html_block"
+      when :html_block
         html_block(io, tokens[i])
-      when "html_inline"
+      when :html_inline
         html_inline(io, tokens[i])
       else
         renderToken(io, tokens, i, options)

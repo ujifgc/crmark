@@ -40,7 +40,7 @@ module MarkdownIt
         return false if !match
 
         if !silent
-          token         = state.push("html_inline", "", 0)
+          token         = state.push(:html_inline, "", 0)
           token.content = state.src[pos, match[0].bytesize]
         end
         state.pos += match[0].size

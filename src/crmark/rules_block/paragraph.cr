@@ -39,15 +39,15 @@ module MarkdownIt
 
         state.line = nextLine
 
-        token          = state.push("paragraph_open", "p", 1)
+        token          = state.push(:paragraph_open, "p", 1)
         token.map      = [ startLine, state.line ]
 
-        token          = state.push("inline", "", 0)
+        token          = state.push(:inline, "", 0)
         token.content  = content
         token.map      = [ startLine, state.line ]
         token.children = [] of Token
 
-        token          = state.push("paragraph_close", "p", -1)
+        token          = state.push(:paragraph_close, "p", -1)
 
         state.parentType = oldParentType
 

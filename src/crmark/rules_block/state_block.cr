@@ -106,7 +106,7 @@ module MarkdownIt
 
       # Push new token to "stream".
       #------------------------------------------------------------------------------
-      def push(type, tag, nesting)
+      def push(type : Symbol, tag, nesting)
         token       = Token.new(type, tag, nesting)
         token.block = true
 

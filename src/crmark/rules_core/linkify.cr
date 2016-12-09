@@ -23,7 +23,7 @@ module MarkdownIt
         return false if (!state.md.options[:linkify])
 
         (0...blockTokens.size).each do |j|
-          if (blockTokens[j].type != "inline" || !LinkifyIt.pretest(blockTokens[j].content))
+          if (blockTokens[j].type != :inline || !LinkifyIt.pretest(blockTokens[j].content))
             next
           end
 
@@ -38,9 +38,9 @@ module MarkdownIt
             currentToken = tokens[i]
 
             # Skip content of markdown links
-            if (currentToken.type == "link_close")
+            if (currentToken.type == :link_close)
               i -= 1
-              while (tokens[i].level != currentToken.level && tokens[i].type != "link_open")
+              while (tokens[i].level != currentToken.level && tokens[i].type != :link_open)
                 i -= 1
               end
               i -= 1
@@ -48,7 +48,7 @@ module MarkdownIt
             end
 
             # Skip content of html tag links
-            if (currentToken.type == "html_inline")
+            if (currentToken.type == :html_inline)
               if isLinkOpen(currentToken.content) && htmlLinkLevel > 0
                 htmlLinkLevel -= 1
               end
@@ -61,7 +61,7 @@ module MarkdownIt
               next 
             end
 
-            if (currentToken.type == "text" && LinkifyIt.pretest(currentToken.content))
+            if (currentToken.type == :text && LinkifyIt.pretest(currentToken.content))
               text = currentToken.content
               links = LinkifyIt.match(text)
 
@@ -91,13 +91,13 @@ module MarkdownIt
                 pos = links[ln].index
 
                 if (pos > lastPos)
-                  token         = Token.new("text", "", 0)
+                  token         = Token.new(:text, "", 0)
                   token.content = text[lastPos...pos].to_slice
                   token.level   = level
                   nodes.push(token)
                 end
 
-                token         = Token.new("link_open", "a", 1)
+                token         = Token.new(:link_open, "a", 1)
                 token.attrs   = [ [ "href", fullUrl ] ]
                 token.level   = level
                 level        += 1
@@ -105,12 +105,12 @@ module MarkdownIt
                 token.info    = "auto"
                 nodes.push(token)
 
-                token         = Token.new("text", "", 0)
+                token         = Token.new(:text, "", 0)
                 token.content = urlText.to_slice
                 token.level   = level
                 nodes.push(token)
 
-                token         = Token.new("link_close", "a", -1)
+                token         = Token.new(:link_close, "a", -1)
                 level        -= 1
                 token.level   = level
                 token.markup  = "linkify"
@@ -121,7 +121,7 @@ module MarkdownIt
               end
 
               if (lastPos < text.size)
-                token         = Token.new("text", "", 0)
+                token         = Token.new(:text, "", 0)
                 token.content = text[lastPos..-1].to_slice
                 token.level   = level
                 nodes.push(token)

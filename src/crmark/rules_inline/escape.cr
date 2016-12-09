@@ -27,7 +27,7 @@ module MarkdownIt
           end
 
           if ch == 0x0A
-            state.push("hardbreak", "br", 0) if !silent
+            state.push(:hardbreak, "br", 0) if !silent
 
             pos += 1
             # skip leading whitespaces from next line
