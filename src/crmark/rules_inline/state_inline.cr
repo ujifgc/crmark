@@ -5,8 +5,6 @@ module MarkdownIt
     class StateInline < ParserState
       include Common::Utils
 
-      @pending : String
-
       # Flush pending text
       #------------------------------------------------------------------------------
       def pushPending
@@ -14,7 +12,7 @@ module MarkdownIt
         token.content = @pending.to_slice
         token.level   = @pendingLevel
         @tokens.push(token)
-        @pending      = ""
+        @pending = IO::Memory.new
         return token
       end
 
@@ -39,19 +37,19 @@ module MarkdownIt
         left_flanking = true
         right_flanking = true
         max = @posMax
-        marker = @src.charCodeAt(start)
+        marker = @src[start]
 
         # treat beginning of the line as a whitespace
-        lastChar = start > 0 ? @src.charCodeAt(start - 1) : 0x20
+        lastChar = start > 0 ? @src[start - 1] : 0x20
 
-        while pos < max && @src.charCodeAt(pos) == marker
+        while pos < max && @src[pos] == marker
           pos += 1
         end
 
         count = pos - start
 
         # treat end of the line as a whitespace
-        nextChar = pos < max ? @src.charCodeAt(pos) : 0x20
+        nextChar = pos < max ? @src[pos] : 0x20
 
         isLastPunctChar = isMdAsciiPunct(lastChar) || isPunctChar(lastChar.to_s)
         isNextPunctChar = isMdAsciiPunct(nextChar) || isPunctChar(nextChar.to_s)

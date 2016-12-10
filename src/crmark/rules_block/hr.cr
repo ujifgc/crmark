@@ -8,7 +8,7 @@ module MarkdownIt
       def self.hr(state, startLine, endLine, silent)
         pos    = state.bMarks[startLine] + state.tShift[startLine]
         max    = state.eMarks[startLine]
-        marker = state.src.charCodeAt(pos)
+        marker = state.src[pos]
         pos   += 1
 
         # Check hr marker
@@ -22,7 +22,7 @@ module MarkdownIt
 
         cnt = 1
         while (pos < max)
-          ch   = state.src.charCodeAt(pos)
+          ch   = state.src[pos]
           pos += 1
           return false if ch != marker && !ch.space_tab? # space
           cnt += 1 if ch == marker

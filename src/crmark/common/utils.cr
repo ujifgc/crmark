@@ -76,24 +76,6 @@ module MarkdownIt
         end
       end
 
-
-      HTML_ESCAPE_TEST_RE     = /[&<>"]/
-      HTML_ESCAPE_REPLACE_RE  = /[&<>"]/
-      HTML_REPLACEMENTS       = {
-        "&" => "&amp;",
-        "<" => "&lt;",
-        ">" => "&gt;",
-        "\"" => "&quot;"
-      }
-
-      #------------------------------------------------------------------------------
-      def escapeHtml(buf : Bytes)
-        if HTML_ESCAPE_TEST_RE.bytematch(buf)
-          return String.new(buf).gsub(HTML_ESCAPE_REPLACE_RE, HTML_REPLACEMENTS)
-        end
-        return String.new(buf)
-      end
-
       REGEXP_ESCAPE_RE = /[.?*+^$\[\]\\(){}|-]/
 
       #------------------------------------------------------------------------------

@@ -4,14 +4,12 @@ module MarkdownIt
   module RulesBlock
     class StateBlock < ParserState
 
-      @pending : String
-
       #------------------------------------------------------------------------------
       def initialize(@src : Bytes, @md : Parser, @env, @tokens : Array(Token))
         @pos          = 0
         @posMax       = @src.size
         @level        = 0
-        @pending      = ""
+        @pending      = IO::Memory.new
         @pendingLevel = 0
         @cache        = {} of Int32 => Int32     # Stores { start: end } pairs. Useful for backtrack !!!
                                                  # optimization of pairs parse (emphasis, strikes).
@@ -61,7 +59,7 @@ module MarkdownIt
         start = pos = indent = offset = 0
         len = s.size
         while pos < len
-          ch = s.charCodeAt(pos)
+          ch = s[pos]
 
           if !indent_found
             if ch == 0x20 || ch == 0x09
@@ -137,7 +135,7 @@ module MarkdownIt
       def skipSpaces(pos)
         max = @src.size
         while pos < max
-          ch = @src.charCodeAt(pos)
+          ch = @src[pos]
           break unless ch == 0x20 || ch == 0x09 # space
           pos += 1
         end
@@ -150,7 +148,7 @@ module MarkdownIt
         return pos if pos <= min
 
         while pos > min
-          ch = @src.charCodeAt(pos -= 1)
+          ch = @src[pos -= 1]
           return (pos + 1) unless ch == 0x20 || ch == 0x09
         end
         return pos
@@ -161,7 +159,7 @@ module MarkdownIt
       def skipChars(pos, code)
         max = @src.size
         while pos < max
-          break if (@src.charCodeAt(pos) != code)
+          break if (@src[pos] != code)
           pos += 1
         end
         return pos
@@ -173,7 +171,7 @@ module MarkdownIt
         return pos if pos <= min
 
         while (pos > min)
-          return (pos + 1) if code != @src.charCodeAt(pos -= 1)
+          return (pos + 1) if code != @src[pos -= 1]
         end
         return pos
       end
@@ -183,53 +181,50 @@ module MarkdownIt
       def getLines(line_begin, line_end, indent, keepLastLF)
         line = line_begin
 
-        return "".to_slice if line_begin >= line_end
+        return Bytes.empty if line_begin >= line_end
 
-        queue = Array(String).new(line_end - line_begin, "")
+        String.build do |io|
+          i = 0
+          while line < line_end
+            lineIndent = 0
+            lineStart = first = @bMarks[line]
 
-        i = 0
-        while line < line_end
-          lineIndent = 0
-          lineStart = first = @bMarks[line]
-
-          if line + 1 < line_end || keepLastLF
-            # No need for bounds check because we have fake entry on tail.
-            last = @eMarks[line] + 1
-          else
-            last = @eMarks[line]
-          end
-
-          while first < last && lineIndent < indent
-            ch = @src.charCodeAt(first)
-            if ch == 0x20 || ch == 0x09
-              if ch == 0x09
-                lineIndent += 4 - (lineIndent + @bsCount[line]) % 4
-              else
-                lineIndent += 1
-              end
-            elsif first - lineStart < @tShift[line]
-              # patched tShift masked characters to look like spaces (blockquotes, list markers)
-              lineIndent += 1
+            if line + 1 < line_end || keepLastLF
+              # No need for bounds check because we have fake entry on tail.
+              last = @eMarks[line] + 1
             else
-              break
+              last = @eMarks[line]
             end
-            first += 1
+
+            while first < last && lineIndent < indent
+              ch = @src[first]
+              if ch == 0x20 || ch == 0x09
+                if ch == 0x09
+                  lineIndent += 4 - (lineIndent + @bsCount[line]) % 4
+                else
+                  lineIndent += 1
+                end
+              elsif first - lineStart < @tShift[line]
+                # patched tShift masked characters to look like spaces (blockquotes, list markers)
+                lineIndent += 1
+              else
+                break
+              end
+              first += 1
+            end
+
+            last = @src.size if last > @src.size
+            if lineIndent > indent
+              # partially expanding tabs in code blocks, e.g '\t\tfoobar'
+              # with indent=2 becomes '  \tfoobar'
+              io.write Bytes.new(lineIndent - indent, 0x20_u8) # ' '
+            end
+            io.write @src[first...last]
+
+            line += 1
+            i    += 1
           end
-
-          last = @src.size if last > @src.size
-          if lineIndent > indent
-            # partially expanding tabs in code blocks, e.g '\t\tfoobar'
-            # with indent=2 becomes '  \tfoobar'
-            queue[i] = " "*(lineIndent - indent) + String.new(@src[first...last])
-          else
-            queue[i] = String.new(@src[first...last])
-          end
-
-          line += 1
-          i    += 1
-        end
-
-        return queue.join("").to_slice # !!!
+        end.to_slice
       end
 
     end

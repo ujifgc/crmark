@@ -22,9 +22,9 @@ module MarkdownIt
         backTicked   = false
         lastBackTick = 0
         
-        ch           = str.charCodeAt(pos)
+        ch           = str[pos]
 
-        while (pos < max)
+        while pos < max
           if ch == 0x60 # `
             if backTicked
               # make \` close code sequence, but not open it
@@ -53,8 +53,8 @@ module MarkdownIt
             backTicked = false
             pos = lastBackTick + 1
           end
-          next if pos >= max
-          ch   = str.charCodeAt(pos)
+          break if pos >= max
+          ch = str[pos]
         end
 
         result.push(str[lastPos..-1])
@@ -78,19 +78,19 @@ module MarkdownIt
         pos = state.bMarks[nextLine] + state.tShift[nextLine]
         return false if (pos >= state.eMarks[nextLine])
 
-        ch = state.src.charCodeAt(pos)
+        ch = state.src[pos]
         pos += 1
         return false if (ch != 0x7C && ch != 0x2D && ch != 0x3A) # != '|' && '-' && ':'
 
         while pos < state.eMarks[nextLine]
-          ch = state.src.charCodeAt(pos)
+          ch = state.src[pos]
           return false if (ch != 0x7C && ch != 0x2D && ch != 0x3A && !ch.space_tab?) # != '|' && '-' && ':'
           pos += 1
         end
 
         lineText = getLine(state, startLine + 1)
 
-        columns = String.new(lineText).split("|").map(&.to_slice)
+        columns = ByteUtils.bytesplit(lineText, 0x7C_u8) # '|'
 
         aligns = [] of String
         (0...columns.size).each do |i|
@@ -106,9 +106,9 @@ module MarkdownIt
           end
 
           return false if (/^:?-+:?$/.bytematch(t)).nil?
-          if (t.charCodeAt(t.size - 1) == 0x3A)  # ':'
-            aligns.push(t.charCodeAt(0) == 0x3A ? "center" : "right")
-          elsif (t.charCodeAt(0) == 0x3A)
+          if (t[t.size - 1] == 0x3A)  # ':'
+            aligns.push(t[0] == 0x3A ? "center" : "right")
+          elsif (t[0] == 0x3A)
             aligns.push("left")
           else
             aligns.push("")
@@ -117,7 +117,7 @@ module MarkdownIt
 
         lineText = getLine(state, startLine).strip
         return false if !lineText.includes?('|'.ord)
-        columns = self.escapedSplit(String.new(lineText).gsub(/^\||\|$/, "").to_slice)
+        columns = self.escapedSplit(/^\||\|$/.bytegsub(lineText, nil))
 
         # header row will define an amount of columns in the entire table,
         # and align row shouldn't be smaller than that (the rest of the rows can)
@@ -160,10 +160,10 @@ module MarkdownIt
           break if (state.sCount[nextLine] < state.blkIndent)
 
           lineText = getLine(state, nextLine)
-          break if !lineText.includes?('|'.ord)
+          break if !lineText.includes?(0x7C_u8) #'|'.ord
           # keep spaces at beginning of line to indicate an empty first cell, but
           # strip trailing whitespace
-          columns = self.escapedSplit(String.new(lineText).gsub(/^\||\|\s*$/, "").to_slice)
+          columns = self.escapedSplit(/^\||\|\s*$/.bytegsub(lineText, nil))
 
           token = state.push(:tr_open, "tr", 1)
           (0...columnCount).each do |i|

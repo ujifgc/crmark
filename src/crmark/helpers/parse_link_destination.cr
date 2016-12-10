@@ -12,10 +12,10 @@ module MarkdownIt
 
         return result if start >= max
 
-        if (str.charCodeAt(pos) == 0x3C ) # < 
+        if (str[pos] == 0x3C ) # < 
           pos += 1
           while (pos < max)
-            code = str.charCodeAt(pos)
+            code = str[pos]
             return result if (code == 0x0A || code == 0x20 || code == 0x09) # \n space tab
             if (code == 0x3E) #  >
               return {ok: true, pos: pos+1, lines: 0, str: unescapeAll(String.new str[(start + 1)...pos])}
@@ -36,7 +36,7 @@ module MarkdownIt
 
         level = 0
         while (pos < max) 
-          code = str.charCodeAt(pos)
+          code = str[pos]
 
           break if (code == 0x20)
 

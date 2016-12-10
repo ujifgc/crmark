@@ -12,7 +12,7 @@ module MarkdownIt
 
         return result if (pos >= max)
 
-        marker = str.charCodeAt(pos)
+        marker = str[pos]
 
         return result if (marker != 0x22 && marker != 0x27 && marker != 0x28) # " ' (
 
@@ -22,14 +22,14 @@ module MarkdownIt
         marker = 0x29 if (marker == 0x28)
 
         while (pos < max)
-          code = str.charCodeAt(pos)
+          code = str[pos]
           if (code == marker)
             return {ok: true, pos: pos+1, lines: lines, str: unescapeAll(String.new str[(start + 1)...pos])}
           elsif (code == 0x0A)
             lines += 1
           elsif (code == 0x5C && pos + 1 < max) # \
             pos += 1
-            if (str.charCodeAt(pos) == 0x0A)
+            if (str[pos] == 0x0A)
               lines += 1
             end
           end

@@ -34,13 +34,13 @@ module MarkdownIt
     property :inlineMode
 
     @posMax : Int32
-    @pending : String
+    @pending : IO::Memory
 
     def initialize(@src : Bytes, @md : Parser, @env : StateEnv, @tokens = [] of Token)
       @pos          = 0
       @posMax       = @src.size
       @level        = 0
-      @pending      = ""
+      @pending      = IO::Memory.new
       @pendingLevel = 0
       @cache        = {} of Int32 => Int32     # Stores { start: end } pairs. Useful for backtrack !!!
                                                # optimization of pairs parse (emphasis, strikes).

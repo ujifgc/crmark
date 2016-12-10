@@ -18,7 +18,7 @@ module MarkdownIt
 
           if tokens[curr].type == :text && (curr + 1 < max) && tokens[curr + 1].type == :text
             # collapse two adjacent text nodes
-            tokens[curr + 1].content = (String.new(tokens[curr].content) + String.new(tokens[curr + 1].content)).to_slice # !!!
+            tokens[curr + 1].content = String.build{ |io| io.write(tokens[curr].content); io.write(tokens[curr + 1].content) }.to_slice
           else
             if (curr != last) 
               tokens[last] = tokens[curr]

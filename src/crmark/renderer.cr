@@ -27,13 +27,7 @@ module MarkdownIt
     def render
       String.build do |io|
         @tokens.size.times do |i|
-          type = @tokens[i].type
-
-          if type == :inline
-            renderInline(io, @tokens[i].children, @options)
-          else
-            renderRule(io, type, @tokens, i, @options)
-          end
+          renderRule(io, @tokens[i].type, @tokens, i, @options)
         end
       end
     end
@@ -42,15 +36,14 @@ module MarkdownIt
     #
     # Render token attributes to string.
     #------------------------------------------------------------------------------
-    def renderAttrs(token)
-      return "" if !token.attrs
-
-      result = ""
+    def renderAttrs(io, token)
       token.attrs.size.times do |i|
-        result += " " + escapeHtml(token.attrs[i][0].to_slice) + "=\"" + escapeHtml(token.attrs[i][1].to_s.to_slice) + "\""
+        io << " "
+        escapeWrite(io, token.attrs[i][0].to_slice)
+        io << "=\""
+        escapeWrite(io, token.attrs[i][1].to_s.to_slice)
+        io << "\""
       end
-
-      return result
     end
 
 
@@ -63,7 +56,6 @@ module MarkdownIt
     # in [[Renderer#rules]].
     #------------------------------------------------------------------------------
     def renderToken(io, tokens, idx, options)
-      needLf = false
       token  = tokens[idx]
 
       # Tight list paragraphs
@@ -84,12 +76,14 @@ module MarkdownIt
       io << (token.nesting == -1 ? "</" : "<") << token.tag
 
       # Encode attributes, e.g. `<img src="foo"`
-      io << renderAttrs(token)
+      renderAttrs(io, token)
 
       # Add a slash for self-closing tags, e.g. `<img src="foo" /`
       if token.nesting == 0 && options[:xhtmlOut]
         io << " /"
       end
+
+      io << ">"
 
       # Check if we need to add a newline after this tag
       if token.block
@@ -112,9 +106,9 @@ module MarkdownIt
             end
           end
         end
-      end
 
-      io << (needLf ? ">\n" : ">")
+        io << "\n" if needLf
+      end
     end
 
 
@@ -150,27 +144,48 @@ module MarkdownIt
       end
     end
 
+    HTML_ESCAPE_REPLACE_RE  = /[&<>"]/
+    HTML_REPLACEMENTS       = {
+      "&".to_slice => "&amp;".to_slice,
+      "<".to_slice => "&lt;".to_slice,
+      ">".to_slice => "&gt;".to_slice,
+      "\"".to_slice => "&quot;".to_slice,
+    }
+
+    #------------------------------------------------------------------------------
+    def escapeWrite(io, buf : Bytes)
+      io.write HTML_ESCAPE_REPLACE_RE.bytegsub(buf, HTML_REPLACEMENTS)
+    end
+
     # Default Rules
     #------------------------------------------------------------------------------
     def code_inline(io, token)
-      io << "<code>" << escapeHtml(token.content) << "</code>"
+      io << "<code>"
+      escapeWrite(io, token.content)
+      io << "</code>"
     end
 
     #------------------------------------------------------------------------------
     def code_block(io, token)
-      io << "<pre><code>" << escapeHtml(token.content) << "</code></pre>\n"
+      io << "<pre><code>"
+      escapeWrite(io, token.content)
+      io << "</code></pre>\n"
     end
 
     #------------------------------------------------------------------------------
     def fence(io, token, options)
       langName  = ""
 
-      if !token.info.empty?
-        langName = unescapeAll(token.info).strip.split(/\s+/)[0]
+      if token.info.is_a?(Bytes)
+        langName = unescapeAll(String.new token.info.as(Bytes)).strip.split(/\s+/).first
         token.attrPush([ "class", options[:langPrefix] + langName ]) unless langName.empty?
       end
 
-      io << "<pre><code" << renderAttrs(token) << ">" << escapeHtml(token.content) << "</code></pre>\n"
+      io << "<pre><code"
+      renderAttrs(io, token)
+      io << ">"
+      escapeWrite(io, token.content)
+      io << "</code></pre>\n"
     end
 
     #------------------------------------------------------------------------------
@@ -200,7 +215,7 @@ module MarkdownIt
 
     #------------------------------------------------------------------------------
     def text(io, token)
-      io << escapeHtml(token.content)
+      escapeWrite(io, token.content)
     end
 
     #------------------------------------------------------------------------------
@@ -232,6 +247,8 @@ module MarkdownIt
         html_block(io, tokens[i])
       when :html_inline
         html_inline(io, tokens[i])
+      when :inline
+        renderInline(io, tokens[i].children, options)
       else
         renderToken(io, tokens, i, options)
       end

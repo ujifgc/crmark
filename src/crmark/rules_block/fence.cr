@@ -12,7 +12,7 @@ module MarkdownIt
 
         return false if pos + 3 > max
 
-        marker = state.src.charCodeAt(pos)
+        marker = state.src[pos]
 
         if marker != 0x7E && marker != 0x60 #  != ~ && != `
           return false
@@ -54,7 +54,7 @@ module MarkdownIt
             break
           end
 
-          next if state.src.charCodeAt(pos) != marker
+          next if state.src[pos] != marker
 
           if state.sCount[nextLine] - state.blkIndent >= 4
             # closing fence should be indented less than 4 spaces
@@ -81,7 +81,7 @@ module MarkdownIt
         state.line    = nextLine + (haveEndMarker ? 1 : 0)
 
         token         = state.push(:fence, "code", 0)
-        token.info    = String.new(params)
+        token.info    = params
         token.content = state.getLines(startLine + 1, nextLine, len, true)
         token.markup  = String.new(markup)
         token.map     = [ startLine, state.line ]

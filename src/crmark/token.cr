@@ -8,6 +8,7 @@ module MarkdownIt
 
     @markup : String
     @content : Bytes
+    @info : Symbol | Bytes | Nil
 
     # new Token(type, tag, nesting)
     #
@@ -67,7 +68,7 @@ module MarkdownIt
        # * Token#info -> String
        # *
        # * fence infostring
-      @info     = ""
+      @info     = nil
 
        # * Token#meta -> Object
        # *

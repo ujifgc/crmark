@@ -11,7 +11,11 @@ module MarkdownIt
 
 
       def self.replaceAt(buf : Bytes, index, ch : String) : Bytes
-        (String.new(buf[0, index]) + ch + String.new(buf[(index + 1)..-1])).to_slice
+        result = Bytes.new(buf.size + ch.bytesize - 1)
+        result.copy_from(buf.pointer(index), index)
+        (result + index).copy_from(ch.to_slice)
+        (result + index + ch.bytesize).copy_from(buf + index + 1)
+        result
       end
 
       record Quote,
@@ -40,7 +44,7 @@ module MarkdownIt
 
           next if token.type != :text
 
-          text : Bytes = token.content
+          text = token.content
           pos  = 0
           max  = text.size
           byteshift = 0
@@ -71,7 +75,7 @@ module MarkdownIt
                   next
                 end
 
-                lastChar = tokens[j].content.charCodeAt(tokens[j].content.size - 1)
+                lastChar = tokens[j].content[tokens[j].content.size - 1]
                 break
                 j -= 1
               end
@@ -92,7 +96,7 @@ module MarkdownIt
                   next
                 end
 
-                nextChar = tokens[j].content.charCodeAt(0)
+                nextChar = tokens[j].content[0]
                 break
                 j += 1
               end
@@ -136,7 +140,7 @@ module MarkdownIt
               # middle of word
               if (isSingle)
                 token.content = replaceAt(token.content, t.begin(0).not_nil! + byteshift, APOSTROPHE)
-                byteshift += APOSTROPHE.bytesize - '"'.bytesize
+                byteshift += APOSTROPHE.bytesize - 1
               end
               next
             end
@@ -181,14 +185,14 @@ module MarkdownIt
             next if continue_outer_loop
 
 
-            if (canOpen)
+            if canOpen
               stack.push(Quote.new(
                 token: i,
                 pos: t.begin(0).not_nil!,
                 single: isSingle,
                 level: thisLevel
               ))
-            elsif (canClose && isSingle)
+            elsif canClose && isSingle
               token.content = replaceAt(token.content, t.begin(0).not_nil!, APOSTROPHE)
             end
           end

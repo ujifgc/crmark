@@ -9,10 +9,6 @@ struct UInt8
 end
 
 struct Slice(T)
-  def charCodeAt(ch)
-    self[ch]
-  end
-
   def [](range : Range(Int, Int))
     from, size = range_to_index_and_size(range)
     self[from, size]
@@ -43,5 +39,31 @@ struct Slice(T)
     size = 0 if size < 0
 
     {from, size}
+  end
+end
+
+class String
+  def self.old(buf : Bytes)
+    buf.to_unsafe.as(String)    
+  end
+end
+
+class IO::Memory
+  def chomp(byte : UInt8)
+    byte_count = 0
+    while byte_count < size
+      if @buffer[size - byte_count - 1] == byte
+        byte_count += 1
+      else
+        break
+      end
+    end
+    @pos -= byte_count
+    @pos = 0 if @pos < 0
+    @bytesize -= byte_count
+  end
+
+  def peek(index)
+    to_slice[index]
   end
 end

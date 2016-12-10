@@ -7,7 +7,7 @@ module MarkdownIt
       #------------------------------------------------------------------------------
       def self.newline(state, silent)
         pos = state.pos
-        return false if state.src.charCodeAt(pos) != 0x0A  # \n
+        return false if state.src[pos] != 0x0A  # \n
 
         pmax  = state.pending.size - 1
         max   = state.posMax
@@ -17,15 +17,14 @@ module MarkdownIt
         # Pending string is stored in concat mode, indexed lookups will cause
         # convertion to flat mode.
         if !silent
-          if pmax >= 0 && state.pending[pmax].ord == 0x20
-            if pmax >= 1 && state.pending[pmax - 1].ord == 0x20
-              state.pending = state.pending.sub(/ +$/, "")
+          if pmax >= 0 && state.pending.peek(pmax) == 0x20_u8
+            if pmax >= 1 && state.pending.peek(pmax - 1) == 0x20_u8
+              state.pending.chomp(0x20_u8)
               state.push(:hardbreak, "br", 0)
             else
-              state.pending = state.pending[0...-1]
+              state.pending.chomp(0x20_u8)
               state.push(:softbreak, "br", 0)
             end
-
           else
             state.push(:softbreak, "br", 0)
           end
@@ -34,7 +33,7 @@ module MarkdownIt
         pos += 1
 
         # skip heading spaces for next line
-        while pos < max && state.src.charCodeAt(pos) == 0x20
+        while pos < max && state.src[pos] == 0x20
           pos += 1
         end
 

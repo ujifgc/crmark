@@ -110,4 +110,72 @@ class Regex
 
     $~ = match
   end
+
+  def bytegsub(target : Bytes, map : Hash(Bytes, _))
+    bytegsub(target) do |str, match, buffer|
+      if found = map[str]?
+        buffer.write found
+      end
+    end
+  end
+
+  def bytegsub(target : Bytes, _nil : Nil)
+    bytegsub(target) { }
+  end
+
+  def bytegsub(target : Bytes, char : Char)
+    bytegsub(target) do |str, match, buffer|
+      buffer << char
+    end
+  end
+
+  def bytegsub(target : Bytes)
+    byte_offset = 0
+    match = bytematch(target, byte_offset)
+    return target unless match
+
+    last_byte_offset = 0
+
+    String.build(target.size) do |buffer|
+      while match
+        index = match.begin(0)
+
+        buffer.write target[last_byte_offset, index - last_byte_offset]
+        str = match[0]
+        $~ = match
+        yield str, match, buffer
+
+        if str.size == 0
+          byte_offset = index + 1
+          last_byte_offset = index
+        else
+          byte_offset = index + str.size
+          last_byte_offset = byte_offset
+        end
+
+        match = bytematch(target, byte_offset)
+      end
+
+      if last_byte_offset < target.size
+        buffer.write target[last_byte_offset..-1]
+      end
+    end.to_slice
+  end
+end
+
+module ByteUtils
+  def self.bytesplit(buf : Bytes, byte : UInt8)
+    result = [] of Bytes
+    index = 0
+    last_index = 0
+    while index < buf.size
+      if buf[index] == byte
+        result << buf[last_index, index - last_index]
+        index += 1
+        last_index = index
+      end
+      index += 1
+    end
+    result << buf[last_index..-1]
+  end
 end

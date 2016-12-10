@@ -13,15 +13,15 @@ module MarkdownIt
         pos = state.pos
         max = state.posMax
 
-        return false if state.src.charCodeAt(pos) != 0x5C    # \
+        return false if state.src[pos] != 0x5C    # \
 
         pos += 1
 
         if pos < max
-          ch = state.src.charCodeAt(pos)
+          ch = state.src[pos]
 
           if ESCAPED[ch]?
-            state.pending += state.src[pos].chr if !silent
+            state.pending.write state.src[pos, 1] if !silent
             state.pos     += 2
             return true
           end
@@ -32,7 +32,7 @@ module MarkdownIt
             pos += 1
             # skip leading whitespaces from next line
             while pos < max
-              ch = state.src.charCodeAt(pos)
+              ch = state.src[pos]
               break if !ch.space_tab?
               pos += 1
             end
@@ -42,7 +42,7 @@ module MarkdownIt
           end
         end
 
-        state.pending += "\\" if !silent
+        state.pending << '\\' if !silent
         state.pos += 1
         return true
       end

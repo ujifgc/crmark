@@ -8,18 +8,18 @@ module MarkdownIt
       def self.heading(state, startLine, endLine, silent)
         pos = state.bMarks[startLine] + state.tShift[startLine]
         max = state.eMarks[startLine]
-        ch  = state.src.charCodeAt(pos)
+        ch  = state.src[pos]
 
         return false if (ch != 0x23 || pos >= max)
 
         # count heading level
         level = 1
         pos  += 1
-        ch = state.src.charCodeAt(pos)
+        ch = state.src[pos]
         while (ch == 0x23 && pos < max && level <= 6)  # '#'
           level += 1
           pos   += 1
-          ch = state.src.charCodeAt(pos)
+          ch = state.src[pos]
         end
 
         return false if (level > 6 || (pos < max && ch != 0x20 && ch != 0x09))  # space/tab
@@ -30,7 +30,7 @@ module MarkdownIt
 
         max = state.skipSpacesBack(max, pos) # space
         tmp = state.skipCharsBack(max, 0x23, pos) # '#'
-        ch  = state.src.charCodeAt(tmp - 1)
+        ch  = state.src[tmp - 1]
         if (tmp > pos && (ch == 0x20 || ch == 0x09))   # space/tab
           max = tmp
         end

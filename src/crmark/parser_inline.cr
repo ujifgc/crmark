@@ -111,7 +111,7 @@ module MarkdownIt
           next
         end
 
-        state.pending += state.src[state.pos].chr
+        state.pending.write state.src[state.pos, 1]
         state.pos     += 1
       end
 

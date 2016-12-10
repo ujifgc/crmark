@@ -102,7 +102,7 @@ module MarkdownIt
                 token.level   = level
                 level        += 1
                 token.markup  = "linkify"
-                token.info    = "auto"
+                token.info    = :auto
                 nodes.push(token)
 
                 token         = Token.new(:text, "", 0)
@@ -114,7 +114,7 @@ module MarkdownIt
                 level        -= 1
                 token.level   = level
                 token.markup  = "linkify"
-                token.info    = "auto"
+                token.info    = :auto
                 nodes.push(token)
 
                 lastPos = links[ln].lastIndex

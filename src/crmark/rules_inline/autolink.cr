@@ -11,7 +11,7 @@ module MarkdownIt
       def self.autolink(state, silent)
         pos = state.pos
 
-        return false if state.src.charCodeAt(pos) != 0x3C  # <
+        return false if state.src[pos] != 0x3C  # <
 
         next_newline = state.src.index('\n'.ord) || -1
         tail = state.src[pos..next_newline]
@@ -27,14 +27,14 @@ module MarkdownIt
             token         = state.push(:link_open, "a", 1)
             token.attrs   = [ [ "href", fullUrl ] ]
             token.markup  = "autolink"
-            token.info    = "auto"
+            token.info    = :auto
 
             token         = state.push(:text, "", 0)
             token.content = state.md.normalizeLinkText.call(url).to_slice
 
             token         = state.push(:link_close, "a", -1)
             token.markup  = "autolink"
-            token.info    = "auto"
+            token.info    = :auto
           end
 
           state.pos += linkMatch[0].bytesize
@@ -50,14 +50,14 @@ module MarkdownIt
             token         = state.push(:link_open, "a", 1)
             token.attrs   = [ [ "href", fullUrl ] ]
             token.markup  = "autolink"
-            token.info    = "auto"
+            token.info    = :auto
 
             token         = state.push(:text, "", 0)
             token.content = state.md.normalizeLinkText.call(url).to_slice
 
             token         = state.push(:link_close, "a", -1)
             token.markup  = "autolink"
-            token.info    = "auto"
+            token.info    = :auto
           end
 
           state.pos += emailMatch[0].bytesize

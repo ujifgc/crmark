@@ -15,8 +15,8 @@ module MarkdownIt
         max    = state.posMax
 
         return false if state.pos + 1 >= state.posMax
-        return false if (state.src.charCodeAt(state.pos) != 0x21) #  !
-        return false if (state.src.charCodeAt(state.pos + 1) != 0x5B) # [
+        return false if (state.src[state.pos] != 0x21) #  !
+        return false if (state.src[state.pos + 1] != 0x5B) # [
 
         label = ""
         labelStart  = state.pos + 2
@@ -26,7 +26,7 @@ module MarkdownIt
         return false if (labelEnd < 0)
 
         pos = labelEnd + 1
-        if pos < max && state.src.charCodeAt(pos) == 0x28 # (
+        if pos < max && state.src[pos] == 0x28 # (
           #
           # Inline link
           #
@@ -35,7 +35,7 @@ module MarkdownIt
           #        ^^ skipping these spaces
           pos += 1
           while pos < max
-            code = state.src.charCodeAt(pos)
+            code = state.src[pos]
             break if code != 0x20 && code != 0x09 && code != 0x0A
             pos += 1
           end
@@ -58,7 +58,7 @@ module MarkdownIt
           #                ^^ skipping these spaces
           start = pos
           while pos < max
-            code = state.src.charCodeAt(pos)
+            code = state.src[pos]
             break if code != 0x20 && code != 0x09 && code != 0x0A
             pos += 1
           end
@@ -73,7 +73,7 @@ module MarkdownIt
             # [link](  <href>  "title"  )
             #                         ^^ skipping these spaces
             while pos < max
-              code = state.src.charCodeAt(pos);
+              code = state.src[pos];
               break if code != 0x20 && code != 0x09 && code != 0x0A
               pos += 1
             end
@@ -81,7 +81,7 @@ module MarkdownIt
             title = ""
           end
 
-          if pos >= max || state.src.charCodeAt(pos) != 0x29 # )
+          if pos >= max || state.src[pos] != 0x29 # )
             state.pos = oldPos
             return false
           end
@@ -92,7 +92,7 @@ module MarkdownIt
           #
           return false if state.env[:references].empty?
 
-          if pos < max && state.src.charCodeAt(pos) == 0x5B # [
+          if pos < max && state.src[pos] == 0x5B # [
             start = pos + 1
             pos   = parseLinkLabel(state, pos)
             if pos >= 0

@@ -19,14 +19,18 @@ module MarkdownIt
 
       RARE_RE = /\+-|\.\.|\?\?\?\?|!!!!|,,|--/
 
-      SCOPED_ABBR_RE = /\((c|tm|r|p)\)/i
       SCOPED_ABBR = {
-        "c" => "©",
-        "r" => "®",
-        "p" => "§",
-        "tm" => "™"
+        "(c)".to_slice => "©".to_slice,
+        "(r)".to_slice => "®".to_slice,
+        "(p)".to_slice => "§".to_slice,
+        "(tm)".to_slice => "™".to_slice,
+        "(C)".to_slice => "©".to_slice,
+        "(R)".to_slice => "®".to_slice,
+        "(P)".to_slice => "§".to_slice,
+        "(TM)".to_slice => "™".to_slice,
       }
-
+      SCOPED_ABBR_RE = /\(c\)|\(r\)|\(p\)|\(tm\)|\(C\)|\(R\)|\(P\)|\(TM\)/
+                                             
       #------------------------------------------------------------------------------
       def self.replaceFn(match, name)
         return SCOPED_ABBR[name.downcase]
@@ -38,14 +42,14 @@ module MarkdownIt
         (inlineTokens.size - 1).downto(0) do |i|
           token = inlineTokens[i]
           if (token.type == :text && inside_autolink == 0)
-            token.content = (String.new(token.content).gsub(SCOPED_ABBR_RE) { |match| self.replaceFn(match, $1) }).to_slice # !!!
+            token.content = SCOPED_ABBR_RE.bytegsub(token.content, SCOPED_ABBR)
           end
 
-          if token.type == :link_open && token.info == "auto"
+          if token.type == :link_open && token.info == :auto
             inside_autolink += 1
           end
 
-          if token.type == :link_close && token.info == "auto"
+          if token.type == :link_close && token.info == :auto
             inside_autolink -= 1
           end
         end
@@ -74,11 +78,11 @@ module MarkdownIt
             end
           end
 
-          if token.type == :link_open && token.info == "auto"
+          if token.type == :link_open && token.info == :auto
             inside_autolink += 1
           end
 
-          if token.type == :link_close && token.info == "auto"
+          if token.type == :link_close && token.info == :auto
             inside_autolink -= 1
           end
         end

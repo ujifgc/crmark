@@ -31,7 +31,7 @@ module MarkdownIt
             max = state.eMarks[nextLine]
 
             if pos < max
-              marker = state.src.charCodeAt(pos)
+              marker = state.src[pos]
 
               if marker == 0x2D || marker == 0x3D # - or =
                 pos = state.skipChars(pos, marker)
