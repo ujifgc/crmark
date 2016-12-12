@@ -10,7 +10,7 @@ module MarkdownIt
 
       #------------------------------------------------------------------------------
       def self.image(state, silent)
-        href   = ""
+        href : Bytes = Bytes.empty
         oldPos = state.pos
         max    = state.posMax
 
@@ -18,9 +18,11 @@ module MarkdownIt
         return false if (state.src[state.pos] != 0x21) #  !
         return false if (state.src[state.pos + 1] != 0x5B) # [
 
-        label = ""
+        label : Bytes = Bytes.empty
         labelStart  = state.pos + 2
         labelEnd    = parseLinkLabel(state, state.pos + 1, false)
+
+        title : Bytes = Bytes.empty
 
         # parser failed to find ']', so it's not a valid link
         return false if (labelEnd < 0)
@@ -46,11 +48,11 @@ module MarkdownIt
           start = pos
           res   = parseLinkDestination(state.src, pos, state.posMax)
           if res[:ok]
-            href = state.md.normalizeLink.call(res[:str])
-            if state.md.validateLink.call(href)
+            href = normalize_link(res[:str])
+            if validate_link(href)
               pos = res[:pos]
             else
-              href = ""
+              href = Bytes.empty
             end
           end
 
@@ -78,7 +80,7 @@ module MarkdownIt
               pos += 1
             end
           else
-            title = ""
+            title = Bytes.empty
           end
 
           if pos >= max || state.src[pos] != 0x29 # )
@@ -96,7 +98,7 @@ module MarkdownIt
             start = pos + 1
             pos   = parseLinkLabel(state, pos)
             if pos >= 0
-              label = String.new(state.src[start...pos])
+              label = state.src[start...pos]
               pos += 1
             else
               pos = labelEnd + 1
@@ -107,7 +109,7 @@ module MarkdownIt
 
           # covers label === '' and label === undefined
           # (collapsed reference link and shortcut reference link respectively)
-          label = String.new(state.src[labelStart...labelEnd]) if label.empty?
+          label = state.src[labelStart...labelEnd] if label.empty?
 
           ref = state.env[:references][normalizeReference(label)]?
           if !ref
@@ -126,10 +128,10 @@ module MarkdownIt
           state.md.inline.parse(state.src[labelStart...labelEnd], state.md, state.env, tokens = [] of Token)
 
           token          = state.push(:image, "img", 0)
-          token.attrs    = attrs = [ [ "src", href ], [ "alt", "" ] ]
+          token.attrs    = attrs = [ { "src", href }, { "alt", Bytes.empty } ]
           token.children = tokens
           unless (title.nil? || title.empty?)
-            attrs.push([ "title", title ])
+            attrs.push({ "title", title })
           end
         end
 

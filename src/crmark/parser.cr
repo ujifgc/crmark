@@ -11,50 +11,7 @@ CONFIG = {
   :markdownit => MarkdownIt::Presets::MarkdownIt.options,
 }
 
-#------------------------------------------------------------------------------
-# This validator can prohibit more than really needed to prevent XSS. It's a
-# tradeoff to keep code simple and to be secure by default.
-#
-# If you need different setup - override validator method as you wish. Or
-# replace it with dummy function and use external sanitizer.
-
-BAD_PROTO_RE = /^(vbscript|javascript|file|data):/
-GOOD_DATA_RE = /^data:image\/(gif|png|jpeg|webp);/
-
-VALIDATE_LINK = ->(url : String) do
-  # url should be normalized at this point, and existing entities are decoded
-  #
-  str = url.strip.downcase
-  !!(!(BAD_PROTO_RE.match str) || (GOOD_DATA_RE.match str))
-end
-
 RECODE_HOSTNAME_FOR = [ "http:", "https:", "mailto:" ]
-
-NORMALIZE_LINK = ->(url : String) do
-  parsed = MarkdownIt::MDUrl::Url.urlParse(url, true)
-  if parsed.hostname
-    if !parsed.protocol || RECODE_HOSTNAME_FOR.includes?(parsed.protocol)
-      begin
-        parsed.hostname = ::SimpleIDN.to_ascii(parsed.hostname.not_nil!)
-      rescue SimpleIDN::Punycode::Error
-      end
-    end
-  end
-  MarkdownIt::MDUrl::Encode.encode(MarkdownIt::MDUrl::Format.format(parsed))
-end
-
-NORMALIZE_LINK_TEXT = ->(url : String) do
-  parsed = MarkdownIt::MDUrl::Url.urlParse(url, true)
-  if parsed.hostname
-    if !parsed.protocol || RECODE_HOSTNAME_FOR.includes?(parsed.protocol)
-      begin
-        parsed.hostname = ::SimpleIDN.to_unicode(parsed.hostname.not_nil!)
-      rescue SimpleIDN::Punycode::Error
-      end
-    end
-  end
-  MarkdownIt::MDUrl::Decode.decode(MarkdownIt::MDUrl::Format.format(parsed))
-end
 
 #------------------------------------------------------------------------------
 # class MarkdownIt
@@ -94,14 +51,6 @@ module MarkdownIt
     property :block
     property :core
     property :options
-    property :validateLink
-    property :normalizeLink
-    property :normalizeLinkText
-    property :linkify
-
-    @validateLink : Proc(String, Bool)
-    @normalizeLink : Proc(String, String)
-    @normalizeLinkText : Proc(String, String)
 
     # new MarkdownIt([presetName, options])
     # - presetName (String): optional, `commonmark` / `zero`
@@ -206,32 +155,6 @@ module MarkdownIt
       # writing plugins. For simple rules control use [[MarkdownIt.disable]] and
       # [[MarkdownIt.enable]].
       @core = ParserCore.new
-
-      # MarkdownIt#validateLink(url) -> Boolean
-      #
-      # Link validation function. CommonMark allows too much in links. By default
-      # we disable `javascript:`, `vbscript:`, `file:` schemas, and almost all `data:...` schemas
-      # except some embedded image types.
-      #
-      # You can change this behaviour:
-      #
-      # ```javascript
-      # var md = require('markdown-it')();
-      # // enable everything
-      # md.validateLink = function () { return true; }
-      # ```
-      @validateLink = VALIDATE_LINK
-
-      # MarkdownIt#normalizeLink(url) -> String
-      #
-      # Function used to encode link url to a machine-readable format,
-      # which includes url-encoding, punycode, etc.
-      @normalizeLink = NORMALIZE_LINK
-
-      # MarkdownIt#normalizeLinkText(url) -> String
-      #
-      # Function used to decode link url to a human-readable format`
-      @normalizeLinkText = NORMALIZE_LINK_TEXT
 
       #  Expose utils & helpers for easy acces from plugins
 

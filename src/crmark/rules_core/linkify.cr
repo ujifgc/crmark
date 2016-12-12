@@ -5,6 +5,8 @@
 module MarkdownIt
   module RulesCore
     class Linkify
+      extend Common::Utils
+
       MAILTO_RE  = /^mailto\:/
       
       #------------------------------------------------------------------------------
@@ -72,8 +74,8 @@ module MarkdownIt
               
               (0...links.size).each do |ln|
                 url = links[ln].url
-                fullUrl = state.md.normalizeLink.call(url)
-                next if (!state.md.validateLink.call(fullUrl))
+                fullUrl = normalize_link(url)
+                next if !validate_link(fullUrl)
 
                 urlText = links[ln].text
 
@@ -81,11 +83,11 @@ module MarkdownIt
                 # starts with domain name. So we prepend http:// in those cases,
                 # and remove it afterwards.
                 if links[ln].schema.empty?
-                  urlText = state.md.normalizeLinkText.call("http://#{urlText}").sub(/^http:\/\//, "")
+                  urlText = normalize_link_text("http://#{urlText}").sub(/^http:\/\//, "")
                 elsif (links[ln].schema == "mailto:" && !(MAILTO_RE.match urlText))
-                  urlText = state.md.normalizeLinkText.call("mailto:#{urlText}").sub(MAILTO_RE, "")
+                  urlText = normalize_link_text("mailto:#{urlText}").sub(MAILTO_RE, "")
                 else
-                  urlText = state.md.normalizeLinkText.call(urlText)
+                  urlText = normalize_link_text(urlText)
                 end
 
                 pos = links[ln].index
@@ -98,7 +100,7 @@ module MarkdownIt
                 end
 
                 token         = Token.new(:link_open, "a", 1)
-                token.attrs   = [ [ "href", fullUrl ] ]
+                token.attrs   = [ { "href", fullUrl.to_slice } ]
                 token.level   = level
                 level        += 1
                 token.markup  = "linkify"

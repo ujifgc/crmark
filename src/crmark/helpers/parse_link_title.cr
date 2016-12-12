@@ -5,10 +5,10 @@ module MarkdownIt
     module ParseLinkTitle
 
       #------------------------------------------------------------------------------
-      def parseLinkTitle(str, pos, max) : NamedTuple(ok: Bool, pos: Int32, lines: Int32, str: String)
+      def parseLinkTitle(str, pos, max) : NamedTuple(ok: Bool, pos: Int32, lines: Int32, str: Bytes)
         lines = 0
         start = pos
-        result = {ok: false, pos: 0, lines: 0, str: ""}
+        result = {ok: false, pos: 0, lines: 0, str: Bytes.empty}
 
         return result if (pos >= max)
 
@@ -24,7 +24,7 @@ module MarkdownIt
         while (pos < max)
           code = str[pos]
           if (code == marker)
-            return {ok: true, pos: pos+1, lines: lines, str: unescapeAll(String.new str[(start + 1)...pos])}
+            return {ok: true, pos: pos+1, lines: lines, str: unescapeAll(str[(start + 1)...pos])}
           elsif (code == 0x0A)
             lines += 1
           elsif (code == 0x5C && pos + 1 < max) # \
@@ -37,7 +37,7 @@ module MarkdownIt
           pos += 1
         end
 
-        return result
+        result
       end
     end
   end

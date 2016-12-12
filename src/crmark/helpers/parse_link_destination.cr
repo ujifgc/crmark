@@ -5,22 +5,22 @@ module MarkdownIt
     module ParseLinkDestination
       
       #------------------------------------------------------------------------------
-      def parseLinkDestination(str, pos, max) : NamedTuple(ok: Bool, pos: Int32, lines: Int32, str: String)
+      def parseLinkDestination(str, pos, max) : NamedTuple(ok: Bool, pos: Int32, lines: Int32, str: Bytes)
         lines = 0
         start = pos
-        result = {ok: false, pos: 0, lines: 0, str: ""}
+        result = {ok: false, pos: 0, lines: 0, str: Bytes.empty}
 
         return result if start >= max
 
-        if (str[pos] == 0x3C ) # < 
+        if str[pos] == 0x3C # < 
           pos += 1
           while (pos < max)
             code = str[pos]
             return result if (code == 0x0A || code == 0x20 || code == 0x09) # \n space tab
-            if (code == 0x3E) #  >
-              return {ok: true, pos: pos+1, lines: 0, str: unescapeAll(String.new str[(start + 1)...pos])}
+            if code == 0x3E #  >
+              return {ok: true, pos: pos+1, lines: 0, str: unescapeAll(str[(start + 1)...pos])}
             end
-            if (code == 0x5C && pos + 1 < max)  # \
+            if code == 0x5C && pos + 1 < max # \
               pos += 2
               next
             end
@@ -35,27 +35,27 @@ module MarkdownIt
         # this should be ... } else { ... branch
 
         level = 0
-        while (pos < max) 
+        while pos < max
           code = str[pos]
 
-          break if (code == 0x20)
+          break if code == 0x20
 
           # ascii control characters
-          break if (code < 0x20 || code == 0x7F)
+          break if code < 0x20 || code == 0x7F
 
-          if (code == 0x5C && pos + 1 < max) # \
+          if code == 0x5C && pos + 1 < max # \
             pos += 2
             next
           end
 
-          if (code == 0x28) # (
+          if code == 0x28 # (
             level += 1
-            break if (level > 1)
+            break if level > 1
           end
 
-          if (code == 0x29) # )
+          if code == 0x29 # )
             level -= 1
-            break if (level < 0)
+            break if level < 0
           end
 
           pos += 1
@@ -63,7 +63,7 @@ module MarkdownIt
 
         return result if start == pos
 
-        return {ok: true, pos: pos, lines: lines, str: unescapeAll(String.new str[start...pos])}
+        return {ok: true, pos: pos, lines: lines, str: unescapeAll(str[start...pos])}
       end
     end
   end

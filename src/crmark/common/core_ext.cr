@@ -51,12 +51,8 @@ end
 class IO::Memory
   def chomp(byte : UInt8)
     byte_count = 0
-    while byte_count < size
-      if @buffer[size - byte_count - 1] == byte
-        byte_count += 1
-      else
-        break
-      end
+    while byte_count < size && @buffer[size - byte_count - 1] == byte
+      byte_count += 1
     end
     @pos -= byte_count
     @pos = 0 if @pos < 0

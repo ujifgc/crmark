@@ -41,7 +41,7 @@ module MarkdownIt
         io << " "
         escapeWrite(io, token.attrs[i][0].to_slice)
         io << "=\""
-        escapeWrite(io, token.attrs[i][1].to_s.to_slice)
+        escapeWrite(io, token.attrs[i][1])
         io << "\""
       end
     end
@@ -178,7 +178,7 @@ module MarkdownIt
 
       if token.info.is_a?(Bytes)
         langName = unescapeAll(String.new token.info.as(Bytes)).strip.split(/\s+/).first
-        token.attrPush([ "class", options[:langPrefix] + langName ]) unless langName.empty?
+        token.attrPush({ "class", (options[:langPrefix] + langName).to_slice }) unless langName.empty?
       end
 
       io << "<pre><code"
@@ -199,7 +199,7 @@ module MarkdownIt
 
       alt_io = IO::Memory.new
       renderInlineAsText(alt_io, token.children, options)
-      token.attrs[token.attrIndex("alt")][1] = alt_io.to_s
+      token.attrs[token.attrIndex("alt")] = { token.attrs[token.attrIndex("alt")][0], alt_io.to_slice }
 
       renderToken(io, tokens, idx, options)
     end

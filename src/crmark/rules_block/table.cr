@@ -138,7 +138,7 @@ module MarkdownIt
           token          = state.push(:th_open, "th", 1)
           token.map      = [ startLine, startLine + 1 ]
           unless aligns[i].empty?
-            token.attrs  = [ [ "style", "text-align:" + aligns[i] ] ]
+            token.attrs  = [ { "style", ("text-align:" + aligns[i]).to_slice } ]
           end
 
           token          = state.push(:inline, "", 0)
@@ -169,7 +169,7 @@ module MarkdownIt
           (0...columnCount).each do |i|
             token          = state.push(:td_open, "td", 1)
             unless aligns[i].empty?
-              token.attrs  = [ [ "style", "text-align:" + aligns[i] ] ]
+              token.attrs  = [ { "style", ("text-align:" + aligns[i]).to_slice } ]
             end
 
             token          = state.push(:inline, "", 0)

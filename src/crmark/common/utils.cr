@@ -1,41 +1,26 @@
 module MarkdownIt
   module Common
     module Utils
-      # Remove element from array and put another array at those position.
-      # Useful for some operations with tokens
-      #------------------------------------------------------------------------------
-      def arrayReplaceAt(src, pos, newElements)
-        src[pos] = newElements
-        src.flatten!(1)
-        return src
-      end
-
       #------------------------------------------------------------------------------
       def isValidEntityCode(c)
         # broken sequence
-        return false if (c >= 0xD800 && c <= 0xDFFF)
+        return false if 0xD800 <= c <= 0xDFFF
 
         # never used
-        return false if (c >= 0xFDD0 && c <= 0xFDEF)
-        return false if ((c & 0xFFFF) === 0xFFFF || (c & 0xFFFF) === 0xFFFE)
+        return false if 0xFDD0 <= c <= 0xFDEF
+        return false if (c & 0xFFFF) == 0xFFFF || (c & 0xFFFF) == 0xFFFE
 
         # control codes
-        return false if (c >= 0x00 && c <= 0x08)
-        return false if (c === 0x0B)
-        return false if (c >= 0x0E && c <= 0x1F)
-        return false if (c >= 0x7F && c <= 0x9F)
+        return false if 0x00 <= c <= 0x08
+        return false if c == 0x0B
+        return false if 0x0E <= c <= 0x1F
+        return false if 0x7F <= c <= 0x9F
 
         # out of range
-        return false if (c > 0x10FFFF)
+        return false if c > 0x10FFFF
 
         return true
       end
-
-      #------------------------------------------------------------------------------
-      def fromCodePoint(c)
-        c.chr
-      end
-
 
       UNESCAPE_MD_RE  = /\\([\!\"\#\$\%\&\'\(\)\*\+\,\-.\/:;<=>?@\[\\\]^_`{|}~])/
 
@@ -45,49 +30,56 @@ module MarkdownIt
       DIGITAL_ENTITY_TEST_RE = /^#((?:x[a-f0-9]{1,8}|[0-9]{1,8}))/i
 
       #------------------------------------------------------------------------------
-      def replaceEntityPattern(match, name)
+      def replaceEntityPattern(match : String, name : String)
         code = 0
 
         return HTMLEntities::MAPPINGS[name] if HTMLEntities::MAPPINGS[name]?
 
         if (name[0].ord == 0x23 && DIGITAL_ENTITY_TEST_RE.match(name)) # '#'
           code = name[1].downcase == 'x' ? name[2..-1].to_i(16) : name[1..-1].to_i
-          if (isValidEntityCode(code))
-            return fromCodePoint(code)
-          end
+          return code.chr if isValidEntityCode(code)
         end
 
-        return match
+        match
       end
 
       #------------------------------------------------------------------------------
-      def unescapeMd(str)
-        return str if !str.include?("\\")
-        return str.gsub(UNESCAPE_MD_RE, "\1")
-      end
-
-      #------------------------------------------------------------------------------
-      def unescapeAll(str)
+      def unescapeAll(str : String) : String
         return str if (str.index("\\").nil? && str.index("&").nil?)
 
-        return str.gsub(UNESCAPE_ALL_RE) do |match|
+        str.gsub(UNESCAPE_ALL_RE) do |match|
           next $1 if $1?
           next replaceEntityPattern(match, $2)
         end
       end
 
-      REGEXP_ESCAPE_RE = /[.?*+^$\[\]\\(){}|-]/
-
       #------------------------------------------------------------------------------
-      def escapeRE(str)
-        str.gsub(REGEXP_ESCAPE_RE) {|s| "\\" + s}
+      def replaceEntityPattern(match : Bytes, _name : Bytes) : Bytes
+        code = 0
+
+        name = String.new _name
+        return HTMLEntities::MAPPINGS[name].to_slice if HTMLEntities::MAPPINGS[name]?
+
+        if (name[0].ord == 0x23 && DIGITAL_ENTITY_TEST_RE.match(name)) # '#'
+          code = name[1].downcase == 'x' ? name[2..-1].to_i(16) : name[1..-1].to_i
+          return Bytes.new(1, code.to_u8) if isValidEntityCode(code)
+        end
+
+        match
       end
 
+      def unescapeAll(str : Bytes) : Bytes
+        return str if str.index('\\'.ord).nil? && str.index('&'.ord).nil?
+
+        UNESCAPE_ALL_RE.bytegsub(str) do |match, _, buffer|
+          buffer.write($1? ? $1 : replaceEntityPattern(match, $2))
+        end
+      end
 
       # Zs (unicode class) || [\t\f\v\r\n]
       #------------------------------------------------------------------------------
       def isWhiteSpace(code)
-        return true if (code >= 0x2000 && code <= 0x200A)
+        return true if 0x2000 <= code <= 0x200A
         case code
         when 0x09, # \t
              0x0A, # \n
@@ -100,9 +92,10 @@ module MarkdownIt
              0x202F,
              0x205F,
              0x3000
-          return true
+          true
+        else
+          false
         end
-        return false
       end
 
       UNICODE_PUNCT_RE = /[!-#%-\*,-\/:;\?@\[-\]_\{\}#{"\u00A1\u00A7\u00AB\u00B6\u00B7\u00BB\u00BF\u037E\u0387\u055A-\u055F\u0589\u058A\u05BE\u05C0\u05C3\u05C6\u05F3\u05F4\u0609\u060A\u060C\u060D\u061B\u061E\u061F\u066A-\u066D\u06D4\u0700-\u070D\u07F7-\u07F9\u0830-\u083E\u085E\u0964\u0965\u0970\u0AF0\u0DF4\u0E4F\u0E5A\u0E5B\u0F04-\u0F12\u0F14\u0F3A-\u0F3D\u0F85\u0FD0-\u0FD4\u0FD9\u0FDA\u104A-\u104F\u10FB\u1360-\u1368\u1400\u166D\u166E\u169B\u169C\u16EB-\u16ED\u1735\u1736\u17D4-\u17D6\u17D8-\u17DA\u1800-\u180A\u1944\u1945\u1A1E\u1A1F\u1AA0-\u1AA6\u1AA8-\u1AAD\u1B5A-\u1B60\u1BFC-\u1BFF\u1C3B-\u1C3F\u1C7E\u1C7F\u1CC0-\u1CC7\u1CD3\u2010-\u2027\u2030-\u2043\u2045-\u2051\u2053-\u205E\u207D\u207E\u208D\u208E\u2308-\u230B\u2329\u232A\u2768-\u2775\u27C5\u27C6\u27E6-\u27EF\u2983-\u2998\u29D8-\u29DB\u29FC\u29FD\u2CF9-\u2CFC\u2CFE\u2CFF\u2D70\u2E00-\u2E2E\u2E30-\u2E42\u3001-\u3003\u3008-\u3011\u3014-\u301F\u3030\u303D\u30A0\u30FB\uA4FE\uA4FF\uA60D-\uA60F\uA673\uA67E\uA6F2-\uA6F7\uA874-\uA877\uA8CE\uA8CF\uA8F8-\uA8FA\uA92E\uA92F\uA95F\uA9C1-\uA9CD\uA9DE\uA9DF\uAA5C-\uAA5F\uAADE\uAADF\uAAF0\uAAF1\uABEB\uFD3E\uFD3F\uFE10-\uFE19\uFE30-\uFE52\uFE54-\uFE61\uFE63\uFE68\uFE6A\uFE6B\uFF01-\uFF03\uFF05-\uFF0A\uFF0C-\uFF0F\uFF1A\uFF1B\uFF1F\uFF20\uFF3B-\uFF3D\uFF3F\uFF5B\uFF5D\uFF5F-\uFF65"}]/
@@ -112,7 +105,6 @@ module MarkdownIt
       def isPunctChar(char)
         UNICODE_PUNCT_RE.match(char) ? true : false
       end
-
 
       # Markdown ASCII punctuation characters.
       # 
@@ -172,8 +164,67 @@ module MarkdownIt
         end
       end
 
+      def normalizeReference(str : Bytes) : Bytes
+        normalizeReference(String.new str).to_slice
+      end
+
       def clean_env
-        StateEnv.new references: {} of String => LinkReference
+        StateEnv.new references: {} of Bytes => LinkReference
+      end
+
+      def normalize_link(url : String)
+        parsed = MarkdownIt::MDUrl::Url.urlParse(url, true)
+        if parsed.hostname
+          if !parsed.protocol || RECODE_HOSTNAME_FOR.includes?(parsed.protocol)
+            begin
+              parsed.hostname = ::SimpleIDN.to_ascii(parsed.hostname.not_nil!)
+            rescue SimpleIDN::Punycode::Error
+            end
+          end
+        end
+        MarkdownIt::MDUrl::Encode.encode(MarkdownIt::MDUrl::Format.format(parsed))
+      end
+
+      def normalize_link(url : Bytes) : Bytes
+        normalize_link(String.new url).to_slice
+      end
+
+      def normalize_link_text(url : String)
+        parsed = MarkdownIt::MDUrl::Url.urlParse(url, true)
+        if parsed.hostname
+          if !parsed.protocol || RECODE_HOSTNAME_FOR.includes?(parsed.protocol)
+            begin
+              parsed.hostname = ::SimpleIDN.to_unicode(parsed.hostname.not_nil!)
+            rescue SimpleIDN::Punycode::Error
+            end
+          end
+        end
+        MarkdownIt::MDUrl::Decode.decode(MarkdownIt::MDUrl::Format.format(parsed))
+      end
+
+      def normalize_link_text(url : Bytes) : Bytes
+        normalize_link_text(String.new url).to_slice
+      end
+
+      #------------------------------------------------------------------------------
+      # This validator can prohibit more than really needed to prevent XSS. It's a
+      # tradeoff to keep code simple and to be secure by default.
+      #
+      # If you need different setup - override validator method as you wish. Or
+      # replace it with dummy function and use external sanitizer.
+
+      BAD_PROTO_RE = /^(vbscript|javascript|file|data):/
+      GOOD_DATA_RE = /^data:image\/(gif|png|jpeg|webp);/
+
+      def validate_link(url : String)
+        # url should be normalized at this point, and existing entities are decoded
+        #
+        str = url.strip.downcase
+        !!(!(BAD_PROTO_RE.match str) || (GOOD_DATA_RE.match str))
+      end
+
+      def validate_link(url : Bytes)
+        validate_link(String.new url)
       end
     end
   end

@@ -1,6 +1,6 @@
 module MarkdownIt
-  alias LinkReference = NamedTuple(title: String, href: String)
-  alias StateEnv = NamedTuple(references: Hash(String, LinkReference))
+  alias LinkReference = NamedTuple(title: Bytes, href: Bytes)
+  alias StateEnv = NamedTuple(references: Hash(Bytes, LinkReference))
   class Delimiter
     property :marker, :size, :jump, :token, :level, :end, :open, :close
 

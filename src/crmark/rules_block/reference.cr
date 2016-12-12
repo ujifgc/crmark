@@ -100,8 +100,8 @@ module MarkdownIt
         res = parseLinkDestination(str, pos, max)
         return false if (!res[:ok])
 
-        href = state.md.normalizeLink.call(res[:str])
-        return false if (!state.md.validateLink.call(href))
+        href = normalize_link(res[:str])
+        return false if !validate_link(href)
 
         pos    = res[:pos]
         lines += res[:lines]
@@ -133,7 +133,7 @@ module MarkdownIt
           pos    = res[:pos]
           lines += res[:lines]
         else
-          title = ""
+          title = Bytes.empty
           pos   = destEndPos
           lines = destEndLineNo
         end
@@ -149,7 +149,7 @@ module MarkdownIt
           unless title.empty?
             # garbage at the end of the line after title,
             # but it could still be a valid reference if we roll back
-            title = ""
+            title = Bytes.empty
             pos = destEndPos
             lines = destEndLineNo
             while pos < max
@@ -165,8 +165,8 @@ module MarkdownIt
           return false
         end
 
-        label = normalizeReference(String.new str[1...labelEnd])
-        if label == ""
+        label = normalizeReference(str[1...labelEnd])
+        if label.empty?
           # CommonMark 0.20 disallows empty labels
           return false
         end

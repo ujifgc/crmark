@@ -28,7 +28,7 @@ module MarkdownIt
        # * Token#attrs -> Array
        # *
        # * Html attributes. Format: `[ [ name1, value1 ], [ name2, value2 ] ]`
-      @attrs    = Array(Array(String)).new
+      @attrs    = Array(Tuple(String, Bytes)).new
 
        # * Token#map -> Array
        # *

@@ -100,6 +100,7 @@ module MarkdownIt
         isTerminatingParagraph = false
         tight = true
         markerValue = 0
+        markerSource = Bytes.empty
 
         # limit conditions when list can interrupt
         # a paragraph (validation mode only)
@@ -147,7 +148,7 @@ module MarkdownIt
         if (isOrdered)
           token       = state.push(:ordered_list_open, "ol", 1)
           if markerValue != 1
-            token.attrs = [ [ "start", markerValue.to_s ] ]
+            token.attrs = [ { "start", markerValue.to_s.to_slice } ]
           end
         else
           token       = state.push(:bullet_list_open, "ul", 1)

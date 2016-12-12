@@ -24,8 +24,7 @@ module LinkifyRe
 
     SRC_AUTH  = "(?:(?:(?!" + SRC_Z_CC + ").)+@)?"
 
-    #SRC_PORT  = "(?::(?:6(?:[0-4]\\d{3}|5(?:[0-4]\\d{2}|5(?:[0-2]\\d|3[0-5])))|[1-5]?\\d{1,4}))?"
-    SRC_PORT  = "(?::\d+)?"
+    SRC_PORT  = "(?::(?:6(?:[0-4]\\d{3}|5(?:[0-4]\\d{2}|5(?:[0-2]\\d|3[0-5])))|[1-5]?\\d{1,4}))?"
 
     SRC_HOST_TERMINATOR = "(?=$|" + SRC_Z_P_CC + ")(?!-|_|:\\d|\\.-|\\.(?!$|" + SRC_Z_P_CC + "))"
 
@@ -179,7 +178,6 @@ module LinkifyIt
   RE_HTTP = Regex.new("^\/\/" + LinkifyRe::SRC_AUTH + LinkifyRe::SRC_HOST_PORT_STRICT + LinkifyRe::SRC_PATH, Regex::Options::IGNORE_CASE)
   RE_MAILTO = Regex.new("^" + LinkifyRe::SRC_EMAIL_NAME + "@" + LinkifyRe::SRC_HOST_STRICT, Regex::Options::IGNORE_CASE)
   RE_NO_HTTP = Regex.new("^" + LinkifyRe::SRC_AUTH + LinkifyRe::SRC_HOST_PORT_STRICT + LinkifyRe::SRC_PATH, Regex::Options::IGNORE_CASE)
-
 
   def self.pretest(buf : Bytes)
     PRETEST.bytematch(buf)

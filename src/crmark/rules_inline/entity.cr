@@ -9,7 +9,6 @@ module MarkdownIt
       NAMED_RE   = /^&([a-z][a-z0-9]{1,31});/i
       MAX_ENTITY_SIZE = 64
 
-
       #------------------------------------------------------------------------------
       def self.entity(state, silent)
         pos = state.pos
@@ -26,7 +25,7 @@ module MarkdownIt
             if match = DIGITAL_RE.bytematch(state.src[pos, html_size])
               if !silent
                 code = match[1][0].chr.downcase == 'x' ? String.new(match[1][1..-1]).to_i(16) : String.new(match[1]).to_i
-                state.pending << (isValidEntityCode(code) ? fromCodePoint(code) : fromCodePoint(0xFFFD))
+                state.pending << (isValidEntityCode(code) ? code.chr : 0xFFFD.chr)
               end
               state.pos += match[0].size
               return true
