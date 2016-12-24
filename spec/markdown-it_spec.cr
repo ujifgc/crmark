@@ -7,7 +7,7 @@ private def assert_render_it(input, output, file = __FILE__, line = __LINE__)
   end
 end
 
-describe "MarkdownIt Spec" do
+describe "MarkdownIt parser" do
   files = Dir.glob "#{__DIR__}/markdown-it/*.txt"
   files.each do |spec_file|
     data = File.read(spec_file)
@@ -15,7 +15,7 @@ describe "MarkdownIt Spec" do
     result = ""
     example_line = 0
     state = 0
-    data.each_line.with_index.each do |line, index|
+    data.each_line(chomp: false).with_index.each do |line, index|
       if line == ".\n" && state == 0
         example_line = index
         source = ""
@@ -28,18 +28,16 @@ describe "MarkdownIt Spec" do
         next
       end
       if line == ".\n" && state == 2
-        source = source.gsub("→", "\t")
-        result = result.gsub("→", "\t")
         assert_render_it source, result, spec_file, example_line
         state = 0
         next
       end
       if state == 1
-        source += line
+        source += line.tr("→", "\t")
         next
       end
       if state == 2
-        result += line
+        result += line.tr("→", "\t")
         next
       end
     end
