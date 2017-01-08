@@ -50,7 +50,6 @@ module MarkdownIt
 
           if code == 0x28 # (
             level += 1
-            break if level > 1
           end
 
           if code == 0x29 # )
