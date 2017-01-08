@@ -14,6 +14,8 @@ module MarkdownIt
       # http://spec.commonmark.org/0.15/#ascii-punctuation-character
       #------------------------------------------------------------------------------
       def self.isTerminatorChar(ch)
+        return false if ((ch | 32) - 97) < 26_u8
+        return false if ch == 32_u8
         case ch
         when 0x0A,    # \n
              0x21,    # !
