@@ -65,12 +65,15 @@ module MarkdownIt
 
       #------------------------------------------------------------------------------
       def self.table(state, startLine, endLine, silent)
-        # should have at least three lines
+        # should have at least two lines
         return false if (startLine + 2 > endLine)
 
         nextLine = startLine + 1
 
         return false if (state.sCount[nextLine] < state.blkIndent)
+
+        # if it's indented more than 3 spaces, it should be a code block
+        return false if (state.sCount[nextLine] - state.blkIndent >= 4)
 
         # first character of the second line should be '|', '-', ':',
         # and no other characters are allowed but spaces;
@@ -117,6 +120,7 @@ module MarkdownIt
 
         lineText = getLine(state, startLine).strip
         return false if !lineText.includes?('|'.ord)
+        return false if (state.sCount[startLine] - state.blkIndent >= 4)
         columns = self.escapedSplit(/^\||\|$/.bytegsub(lineText, nil))
 
         # header row will define an amount of columns in the entire table,
@@ -159,11 +163,12 @@ module MarkdownIt
         while nextLine < endLine
           break if (state.sCount[nextLine] < state.blkIndent)
 
-          lineText = getLine(state, nextLine)
-          break if !lineText.includes?(0x7C_u8) #'|'.ord
+          lineText = getLine(state, nextLine).strip
+          break if !lineText.includes?('|'.ord)
           # keep spaces at beginning of line to indicate an empty first cell, but
           # strip trailing whitespace
-          columns = self.escapedSplit(/^\||\|\s*$/.bytegsub(lineText, nil))
+          break if (state.sCount[nextLine] - state.blkIndent >= 4)
+          columns = self.escapedSplit(/^\||\|$/.bytegsub(lineText, nil))
 
           token = state.push(:tr_open, "tr", 1)
           (0...columnCount).each do |i|
