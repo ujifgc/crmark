@@ -33,7 +33,7 @@ module MarkdownIt
         pos += 1
 
         # skip heading spaces for next line
-        while pos < max && state.src[pos] == 0x20
+        while pos < max && state.src[pos].space_tab?
           pos += 1
         end
 
