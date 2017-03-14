@@ -12,6 +12,9 @@ module MarkdownIt
         max      = state.eMarks[startLine]
         nextLine = startLine + 1
 
+        # if it's indented more than 3 spaces, it should be a code block
+        return false if state.sCount[startLine] - state.blkIndent >= 4
+
         return false if state.src[pos] != 0x5B # [
 
         # Simple check to quickly interrupt scan on [link](url) at the start of line.

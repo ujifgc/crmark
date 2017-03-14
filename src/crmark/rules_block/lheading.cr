@@ -9,6 +9,9 @@ module MarkdownIt
         nextLine = startLine + 1
         terminatorRules = state.md.block.ruler.getRules("paragraph")
 
+        # if it's indented more than 3 spaces, it should be a code block
+        return false if state.sCount[startLine] - state.blkIndent >= 4
+
         oldParentType = state.parentType
         state.parentType = "paragraph"
 

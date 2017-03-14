@@ -102,6 +102,9 @@ module MarkdownIt
         markerValue = 0
         markerSource = Bytes.empty
 
+        # if it's indented more than 3 spaces, it should be a code block
+        return false if state.sCount[startLine] - state.blkIndent >= 4
+
         # limit conditions when list can interrupt
         # a paragraph (validation mode only)
         if silent && state.parentType == "paragraph"
