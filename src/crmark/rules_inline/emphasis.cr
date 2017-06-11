@@ -69,18 +69,18 @@ module MarkdownIt
         delimiters = state.delimiters
         max = delimiters.size
 
-        i = 0
-        while i < max
+        i = max - 1
+        while i >= 0
           startDelim = delimiters[i]
 
           if startDelim.marker != 0x5F && startDelim.marker != 0x2A # _ *
-            i += 1
+            i -= 1
             next
           end
 
           # Process only opening markers
           if startDelim.end == -1
-            i += 1
+            i -= 1
             next
           end
 
@@ -91,11 +91,11 @@ module MarkdownIt
           #
           # `<em><em>whatever</em></em>` -> `<strong>whatever</strong>`
           #
-          isStrong = (i + 1 < max) &&
-                     (delimiters[i + 1].end == startDelim.end - 1) &&
-                     (delimiters[i + 1].token == startDelim.token + 1) &&
-                     (delimiters[startDelim.end - 1].token == endDelim.token - 1) &&
-                     delimiters[i + 1].marker == startDelim.marker
+          isStrong = (i - 1 >= 0) &&
+                     (delimiters[i - 1].end == startDelim.end + 1) &&
+                     (delimiters[i - 1].token == startDelim.token - 1) &&
+                     (delimiters[startDelim.end + 1].token == endDelim.token + 1) &&
+                     delimiters[i - 1].marker == startDelim.marker
 
           ch = startDelim.marker.to_s
 
@@ -114,11 +114,11 @@ module MarkdownIt
           token.content = "".to_slice
 
           if (isStrong)
-            state.tokens[delimiters[i + 1].token].content = "".to_slice
-            state.tokens[delimiters[startDelim.end - 1].token].content = "".to_slice
-            i += 1
+            state.tokens[delimiters[i - 1].token].content = "".to_slice
+            state.tokens[delimiters[startDelim.end + 1].token].content = "".to_slice
+            i -= 1
           end
-          i += 1
+          i -= 1
         end
         true
       end
