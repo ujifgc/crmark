@@ -1,4 +1,4 @@
-# Proceess '\n'
+# Process '\n'
 #------------------------------------------------------------------------------
 module MarkdownIt
   module RulesInline
