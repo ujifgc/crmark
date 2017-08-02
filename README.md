@@ -1,6 +1,6 @@
 # crmark
 
-TODO: Write a description here
+Crystal port of markdown-it parser and renderer. CommonMark and syntax extensions support.
 
 ## Installation
 
@@ -10,7 +10,7 @@ Add this to your application's `shard.yml`:
 ```yaml
 dependencies:
   crmark:
-    github: [your-github-name]/crmark
+    github: ujifgc/crmark
 ```
 
 
@@ -19,23 +19,19 @@ dependencies:
 
 ```crystal
 require "crmark"
+
+cm_parser = MarkdownIt::Parser.new(:commonmark)
+cm_parser.render(input)
+
+mdi_parser = MarkdownIt::Parser.new(:markdownit)
+mdi_parser.render(input)
 ```
-
-
-TODO: Write usage instructions here
-
-## Development
-
-TODO: Write development instructions here
-
-## Contributing
-
-1. Fork it ( https://github.com/[your-github-name]/crmark/fork )
-2. Create your feature branch (git checkout -b my-new-feature)
-3. Commit your changes (git commit -am 'Add some feature')
-4. Push to the branch (git push origin my-new-feature)
-5. Create a new Pull Request
 
 ## Contributors
 
-- [[your-github-name]](https://github.com/[your-github-name]) Igor Bochkariov - creator, maintainer
+- [Igor Bochkariov](https://github.com/ujifgc) Igor Bochkariov - creator, maintainer
+
+## References
+
+[markdown-it](https://github.com/markdown-it/markdown-it) - JavaScript Markdown parser done right. Fast and easy to extend.
+[CommonMark](https://github.com/jgm/CommonMark) - CommonMark spec
