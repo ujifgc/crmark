@@ -33,5 +33,5 @@ mdi_parser.render(input)
 
 ## References
 
-[markdown-it](https://github.com/markdown-it/markdown-it) - JavaScript Markdown parser done right. Fast and easy to extend.
+[markdown-it](https://github.com/markdown-it/markdown-it) - JavaScript Markdown parser done right. Fast and easy to extend.  
 [CommonMark](https://github.com/jgm/CommonMark) - CommonMark spec
