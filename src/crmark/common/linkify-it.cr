@@ -174,9 +174,9 @@ module LinkifyIt
   SCHEMA_SEARCH = Regex.new("(^|(?!_)(?:[><\uff5c]|" + SRC_Z_P_CC + "))(" + SCHEMAS_LIST + ")", Regex::Options::IGNORE_CASE)
   PRETEST       = Regex.new( "(" + SCHEMA_TEST.source + ")|" + "(" + HOST_FUZZY_TEST.source + ")|" + "@", Regex::Options::IGNORE_CASE)
 
-  RE_HTTP = Regex.new("^\/\/" + SRC_AUTH + SRC_HOST_PORT_STRICT + SRC_PATH, Regex::Options::IGNORE_CASE)
-  RE_MAILTO = Regex.new("^" + SRC_EMAIL_NAME + "@" + SRC_HOST_STRICT, Regex::Options::IGNORE_CASE)
-  RE_NO_HTTP = Regex.new("^" + SRC_AUTH + SRC_HOST_PORT_STRICT + SRC_PATH, Regex::Options::IGNORE_CASE)
+  RE_HTTP = Regex.new("^\/\/" + SRC_AUTH + SRC_HOST_PORT_STRICT + SRC_PATH)
+  RE_MAILTO = Regex.new("^" + SRC_EMAIL_NAME + "@" + SRC_HOST_STRICT)
+  RE_NO_HTTP = Regex.new("^" + SRC_AUTH + SRC_HOST_PORT_STRICT + SRC_PATH)
 
   def self.pretest(buf : Bytes)
     PRETEST.bytematch(buf)
