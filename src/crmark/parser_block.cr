@@ -75,7 +75,7 @@ module MarkdownIt
           break if ok
         end
 
-        # set state.tight iff we had an empty line before current tag
+        # set state.tight if we had an empty line before current tag
         # i.e. latest empty line should not count
         state.tight = !hasEmptyLines
 

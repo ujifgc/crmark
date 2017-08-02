@@ -4,7 +4,7 @@ module MarkdownIt
   module RulesBlock
     class List
 
-      # Search `[-+*][\n ]`, returns next pos arter marker on success
+      # Search `[-+*][\n ]`, returns next pos after marker on success
       # or -1 on fail.
       #------------------------------------------------------------------------------
       def self.skipBulletListMarker(state, startLine)
@@ -180,12 +180,10 @@ module MarkdownIt
           while pos < max
             ch = state.src[pos]
 
-            if ch == 0x20 || ch == 0x09
-              if ch == 0x09
-                offset += 4 - (offset + state.bsCount[nextLine]) % 4
-              else
-                offset += 1
-              end
+            if ch == 0x09
+              offset += 4 - (offset + state.bsCount[nextLine]) % 4
+            elsif ch == 0x20
+              offset += 1
             else
               break
             end
@@ -287,7 +285,7 @@ module MarkdownIt
           break if markerCharCode != state.src[posAfterMarker - 1]
         end
 
-        # Finilize list
+        # Finalize list
         if (isOrdered)
           token = state.push(:ordered_list_close, "ol", -1)
         else
