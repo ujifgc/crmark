@@ -1,3 +1,5 @@
+# warning! this repo is no longer maintained
+
 # crmark
 
 Crystal port of markdown-it parser and renderer. CommonMark and syntax extensions support.
